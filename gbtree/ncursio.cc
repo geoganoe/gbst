@@ -464,6 +464,7 @@ ncursio::ncursio()
     wrefresh( bt_main );
 
     // chr_in = getch();
+#ifdef NCURSES_good_version
     string grph_needed = " ┼│┌└─╄╆┃┏┗━╋╃╅";
     mvwaddstr( bt_gr_pad, 2, 3, grph_needed.c_str() );
     numwgr = mvwinnwstr( bt_gr_pad, 2, 3, wgr_need, 16 );
@@ -571,6 +572,12 @@ ncursio::ncursio()
     waddstr( bt_gr_pad, ".  " );
     prefresh( bt_gr_pad, 0, 0, grds_sty, grds_stx, grds_eny, grds_enx );
     scrollok(bt_gr_pad,TRUE);
+#else
+    mvwaddstr( bt_gr_pad, 2, 3, "Skipping the wide character test due to "
+      "the ncurses version being used." );
+    prefresh( bt_gr_pad, 0, 0, grds_sty, grds_stx, grds_eny, grds_enx );
+    scrollok(bt_gr_pad,TRUE);
+#endif
     // Check out color capabilities
     // bkcolred
     // bkcolgrn

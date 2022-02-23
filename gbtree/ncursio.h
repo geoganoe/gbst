@@ -31,6 +31,16 @@
 #include <ncurses.h>
 //  #include <string>     in common
 //  #include <sstream>    in common
+
+// Check to make sure the ncurses version supports the new wide char type
+#ifdef NCURSES_VERSION_MAJOR
+#ifdef NCURSES_VERSION_MINOR
+#if NCURSES_VERSION_MAJOR >= 6 && NCURSES_VERSION_MINOR >= 2
+#define NCURSES_good_version 1
+#endif
+#endif
+#endif
+
 #include "fo-common.h"
 #include "heap-mon-util.h"
 #include <cstdint>
