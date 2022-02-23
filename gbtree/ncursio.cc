@@ -3,6 +3,21 @@
 //   utilities.  So far, two utilities have been included, but more may
 //   be coming in the future.
 //
+//    Copyright (C) 2022  George Ganoe
+//
+//    This program is free software; you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation; either version 2 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License along
+//    with this program; if not, write to the Free Software Foundation, Inc.,
+//    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 //
 // Use the following command to build this object:
@@ -449,7 +464,6 @@ ncursio::ncursio()
     wrefresh( bt_main );
 
     // chr_in = getch();
-#ifdef NCURSES_good_version
     string grph_needed = " ┼│┌└─╄╆┃┏┗━╋╃╅";
     mvwaddstr( bt_gr_pad, 2, 3, grph_needed.c_str() );
     numwgr = mvwinnwstr( bt_gr_pad, 2, 3, wgr_need, 16 );
@@ -557,12 +571,6 @@ ncursio::ncursio()
     waddstr( bt_gr_pad, ".  " );
     prefresh( bt_gr_pad, 0, 0, grds_sty, grds_stx, grds_eny, grds_enx );
     scrollok(bt_gr_pad,TRUE);
-#else
-    mvwaddstr( bt_gr_pad, 2, 3, "Skipping the wide character test due to "
-      "the ncurses version being used." );
-    prefresh( bt_gr_pad, 0, 0, grds_sty, grds_stx, grds_eny, grds_enx );
-    scrollok(bt_gr_pad,TRUE);
-#endif
     // Check out color capabilities
     // bkcolred
     // bkcolgrn

@@ -7,6 +7,23 @@
 //   problems. However, the first thing I need to do is decide on the
 //   best approach toward getting the displays that I need for a good
 //   visualization.
+//
+//    Copyright (C) 2022  George Ganoe
+//
+//    This program is free software; you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation; either version 2 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License along
+//    with this program; if not, write to the Free Software Foundation, Inc.,
+//    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+//
 
 #ifndef NCURS_IO_H
 #define NCURS_IO_H
@@ -14,16 +31,6 @@
 #include <ncurses.h>
 //  #include <string>     in common
 //  #include <sstream>    in common
-
-// Check to make sure the ncurses version supports the new wide char type
-#ifdef NCURSES_VERSION_MAJOR
-#ifdef NCURSES_VERSION_MINOR
-#if NCURSES_VERSION_MAJOR >= 6 && NCURSES_VERSION_MINOR >= 2
-#define NCURSES_good_version 1
-#endif
-#endif
-#endif
-
 #include "fo-common.h"
 #include "heap-mon-util.h"
 #include <cstdint>
