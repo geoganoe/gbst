@@ -1,0 +1,76 @@
+#! /bin/bash
+# Quick script to do a complete build for the bt-test
+#   testing program
+#
+
+origFldr=$PWD
+userNm=${HOME##*/}
+bdate=$(date +%Y%m%d)
+
+if [ -d "gbtree" -o -d "uni-utils" ]; then
+    baseFldr=$origFldr
+else
+    baseFldr=${origFldr%/gbtree*}
+    if [ "$baseFldr" == "$origFldr" ]; then
+        baseFldr=${origFldr%/uni-utils*}
+        if [ "$baseFldr" == "$origFldr" ]; then
+            echo "Can not find the gbtree or uni-utils folders in the path, "
+            echo "so exiting with error indicated."
+            exit 1
+        fi
+    fi
+fi
+echo "origFldr is $origFldr and baseFldr is $baseFldr"
+
+cd $baseFldr
+
+getout () {
+    echo "The executing process failed stopping here"
+    exit 1
+}
+
+# The libfoutil.a library needs to be deleted as it can cause a number of
+#   confusing build error messages when building a checked out commit
+#   that is different enough from the previous build.
+rm lib/libbtutil.a
+
+cd uni-utils
+echo "Running compiler g++ -O2 -Wall -std=c++17 -c hex-symbol.cc in $PWD"
+g++ -O2 -Wall -std=c++17 -c hex-symbol.cc || getout
+echo "Running compiler g++ -O2 -Wall -std=c++17 -c uni-utils.cc in $PWD"
+g++ -O2 -Wall -std=c++17 -c uni-utils.cc || getout
+echo "Updating the library ar -Prs ../lib/libbtutil.a hex-symbol.o uni-utils.o in $PWD"
+ar -Prs ../lib/libbtutil.a hex-symbol.o uni-utils.o
+
+cd $baseFldr/gbtree
+echo "Running compiler g++ -O2 -Wall -std=c++17 -c fo-utils.cc in $PWD"
+g++ -O2 -Wall -std=c++17 -c fo-utils.cc || getout
+echo "Running compiler g++ -O2 -Wall -std=c++17 -c gbtree.cc in $PWD"
+g++ -O2 -Wall -std=c++17 -c gbtree.cc || getout
+echo "Running compiler g++ -O2 -Wall -std=c++17 -c utf8-name-store.cc in $PWD"
+g++ -O2 -Wall -std=c++17 -c utf8-name-store.cc || getout
+echo "Running compiler g++ -O2 -Wall -std=c++17 -c hash-rcrd-type.cc in $PWD"
+g++ -O2 -Wall -std=c++17 -c hash-rcrd-type.cc || getout
+echo "Running compiler g++ -O2 -Wall -std=c++17 -c utf8-rcrd-type.cc in $PWD"
+g++ -O2 -Wall -std=c++17 -c utf8-rcrd-type.cc || getout
+echo "Running compiler g++ -O2 -Wall -std=c++17 -c gbst-iface.cc in $PWD"
+g++ -O2 -Wall -std=c++17 -c gbst-iface.cc || getout
+echo "Running compiler g++ -O2 -Wall -std=c++17 -c ncursio.cc in $PWD"
+g++ -O2 -Wall -std=c++17 -c ncursio.cc || getout
+echo "Running compiler g++ -O2 -Wall -std=c++17 -c btree-graph-class.cc in $PWD"
+g++ -O2 -Wall -std=c++17 -c btree-graph-class.cc || getout
+
+echo "Updating library ar -Prs ../lib/libbtutil.a gbst-iface.o utf8-rcrd-type.o"
+ar -Prs ../lib/libbtutil.a gbst-iface.o utf8-rcrd-type.o
+echo "Updating library ar -Prs ../lib/libbtutil.a gbtree.o utf8-name-store.o"
+ar -Prs ../lib/libbtutil.a gbtree.o utf8-name-store.o
+echo "Updating library ar -Prs ../lib/libbtutil.a hash-rcrd-type.o fo-utils.o"
+ar -Prs ../lib/libbtutil.a hash-rcrd-type.o fo-utils.o
+echo "Updating library ar -Prs ../lib/libbtutil.a ncursio.o btree-graph-class.o"
+ar -Prs ../lib/libbtutil.a ncursio.o btree-graph-class.o
+ar -Ptv ../lib/libbtutil.a
+
+echo "Running compiler g++ -std=c++17 -o $baseFldr/tstr tstr.cc -L ../../lib -lbtutil in $PWD"
+g++ -O2 -Wall -std=c++17 -o gbst-test gbst-test.cc -L ../lib -lbtutil -lncursesw -lcrypto
+
+cd $baseFldr

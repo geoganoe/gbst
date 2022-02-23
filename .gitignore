@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+# auxiliary folders
+temp
+gbst-test
