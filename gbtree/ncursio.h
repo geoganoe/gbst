@@ -15,6 +15,7 @@
 //  #include <string>     in common
 //  #include <sstream>    in common
 #include "fo-common.h"
+#include "heap-mon-util.h"
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -23,7 +24,7 @@ using namespace std;
 
 #ifdef INdevel
     // Declarations/definitions/code for development only
-
+extern heap_mon_class heap_mn;
 #endif // #ifdef INdevel
 
 #ifdef USEncurses
@@ -32,6 +33,10 @@ class ncursio {
     WINDOW *bt_dbg;
     WINDOW *bt_main;
     WINDOW *bt_info;
+    WINDOW *hpmn_desc;
+    WINDOW *hpmn_vals;
+    WINDOW *sstrm_desc;
+    WINDOW *sstrm_vals;
     ostringstream btgr;
     ostringstream dbg;
     ostringstream btmn;
@@ -73,6 +78,20 @@ class ncursio {
     int16_t inf_strtx;
     uint16_t info_ht;
     uint16_t info_wid;
+    uint16_t hpmn_ht;
+    uint16_t hpmnd_wid;
+    uint16_t hpmnd_sty;
+    uint16_t hpmnd_stx;
+    uint16_t hpmnv_wid;
+    uint16_t hpmnv_sty;
+    uint16_t hpmnv_stx;
+    uint16_t sstrm_ht;
+    uint16_t sstrmd_wid;
+    uint16_t sstrmd_sty;
+    uint16_t sstrmd_stx;
+    uint16_t sstrmv_wid;
+    uint16_t sstrmv_sty;
+    uint16_t sstrmv_stx;
     int16_t inp_tm_out_ms;
     int16_t keyleft_pres;
     int16_t keyright_pres;

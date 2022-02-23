@@ -26,6 +26,7 @@
 
 #include "utf8-name-store.h"
 #include "fo-common.h"
+#include "heap-mon-util.h"
 #include <cstring>
 #include <iomanip>
 #include <ctype.h>
@@ -34,9 +35,16 @@
 #ifdef DOatexit
 #include <iostream>
 
+extern heap_mon_class heap_mn;
+
 void atexit_handl_5()
 {
     cout << "at exit handler number 5." << endl;
+    cout << "Heap info at handler number 5." << endl;
+    while ( !heap_mn.is_new_info() ) heap_mn.get_info();
+    ostringstream idisp;
+    heap_mn.disp_info( idisp );
+    cout << idisp.str() << endl;
 }
 #endif  //    #ifdef DOatexit
 

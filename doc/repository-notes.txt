@@ -1,0 +1,66 @@
+file-organizer repository notes:
+
+All of the recent commits that I have checked lately have problems with aborts
+or segmentation faults after main returns, and figuring out why is complicated
+by the fact that there are too many changes between the versions to figure out
+what introduced the problem.  So, I am embarking on a quest to gradually
+incorporate the new developments a bit at a time starting with a commit that
+has none of those errors, and commiting the small changes as they are
+incorporated.
+
+Starting at tag last-good, I am adding bits and pieces from succeeding commits
+that do not cause problems or that can be fixed, and testing rigorously to
+insure that the change is OK for all permutations except for the INFOdisplay
+macro being required to be set as there are many places where those functions
+are used by code that is not controlled by the macro.
+
+I start by adding a build file bld-fo-string that will be maintained for each
+new commit as necessary.  The I started by  adding in some minor changes found
+in another commit.  After that, I decided to proceed contiguously through the
+change commits picking changes that work or can be easily made to work,
+starting with the commit fb9941188bde which is the next commit after last-good.
+Those changes are committed as "Incorporate the benign changes from prev try",
+but wthout doing the test of commenting out the INdevel macro.  When I did
+that, some side effects appeared that should have been expected as they are
+fixed in the chkpt01 branch commit 4986ab37159 with tag fix-target01, so I have
+copied the needed fix lines from there.  Those include changing INdevel error
+exits to program detected error exits in a number of places in foutils, gbtree,
+fo-str-ptr-rcrd, fo-string-table.h, and fo-string-test.  After making the
+minimum changes needed to get the problem areas to match their state in
+fix-target01, I tested with various combinations of the macros and all
+combinations worked without errors.
+
+The next step is to add in the updates to the str_utf8 class.  Some additional
+things to take care of here include:
+
+    fix the str_utf8 destructor problem (see presegfix branch); modify the
+    debugging with struct debug_flags global variable dbg.s_utf8 flag once it
+    is implemented instead of using the dbg_out passed variable then when that
+    flag is implemented, turn it off while running debug updates in ncurses;
+
+    since vec_idx is purposely set to an invalid value that would cause memory
+    corruption if not checked, maybe try change bracket references of ivs[
+    vec_idx ] to ivs.at( vec_idx ) instead to provoke an abort if it happens;
+
+    minor efficiency enhancement for setup_index_vec() to use emplace_back()
+    instead of defining a new_vec then copying it to the ivs vector, then can
+    use the returned reference to set the reserve();
+
+    the method str_utf8::get_idxvec() is overly complicated so consider using
+    if ( !is_setup ) -> exit process then just return ivs[ vec_idx ];
+
+    and if that doesn't work then define the const reference to return;
+
+One Segmentation fault diagnoses:  The global variable str_utf8 plbck_strg is
+instantiated before the ivs vector of index_vec that it needs to reference.
+Apparently when the constructor checks if it is ready by testing its size, it
+sees a value that indicates that it is not ready, most likely gets a return of
+0, but when the program exits, the ivs vector is destroyed before the
+plbck_strg variable, and when the plbck_strg destructor tries to access the
+index_vec that it was assigned, the Seg fault happens.  Since the destructor
+needs to do that in normal operating mode, the only solution is to insure that
+the plbck_strg gets instantiated after the ivs vector.  Another solution could
+be to just incorporate the index_vec into the str_utf8 class definition,
+instead of getting an index to a free one when it is instantiated.  The
+original intent was to avoid heap fragmentation as much as possible, but it has
+turned out to be more trouble than it is worth.

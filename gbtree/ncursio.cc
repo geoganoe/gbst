@@ -171,6 +171,11 @@ string cxh = "╋"; // U+254b   11  cross heavy
 void atexit_handl_9()
 {
     cout << "at exit handler number 9." << endl;
+    cout << "Heap info at handler number 9." << endl;
+    while ( !heap_mn.is_new_info() ) heap_mn.get_info();
+    ostringstream idisp;
+    heap_mn.disp_info( idisp );
+    cout << idisp.str() << endl;
 }
 
 const int16_t main_nlines = 5;
@@ -296,7 +301,20 @@ ncursio::ncursio()
     inf_strtx = mn_wid + 1;
     info_ht = LINES - inf_strty;
     info_wid = COLS - 1 - mn_wid;
-
+    hpmn_ht = 12;
+    hpmnd_wid = 37;
+    hpmnv_wid = v_wid * 4 + 1;
+    hpmnd_sty = graph_ht - hpmn_ht;
+    hpmnd_stx = graph_wid - hpmnd_wid - hpmnv_wid - 1;
+    hpmnv_sty = graph_ht - hpmn_ht;
+    hpmnv_stx = graph_wid - hpmnv_wid - 1;
+    sstrm_ht = 9;
+    sstrmd_wid = 14;    // string stream sizes
+    sstrmv_wid = v_wid * 2 + 1;
+    sstrmd_sty = hpmnv_sty - sstrm_ht;
+    sstrmd_stx = graph_wid - sstrmd_wid - sstrmv_wid - 1;
+    sstrmv_sty = hpmnv_sty - sstrm_ht;
+    sstrmv_stx = graph_wid - sstrmv_wid - 1;
     dbg_scroll_win = false;
     dbg_continuous_scroll = false;
 
@@ -411,6 +429,10 @@ ncursio::ncursio()
     scrollok(bt_dbg,TRUE);
     bt_main = newwin( mn_ht, mn_wid, mn_strty, mn_strtx );
     bt_info = newwin( info_ht, info_wid, inf_strty, inf_strtx );
+    hpmn_desc = newwin( hpmn_ht, hpmnd_wid, hpmnd_sty, hpmnd_stx );
+    hpmn_vals = newwin( hpmn_ht, hpmnv_wid, hpmnv_sty, hpmnv_stx );
+    sstrm_desc = newwin( sstrm_ht, sstrmd_wid, sstrmd_sty, sstrmd_stx );
+    sstrm_vals = newwin( sstrm_ht, sstrmv_wid, sstrmv_sty, sstrmv_stx );
     scrollok(bt_info,TRUE);
     wmove( bt_info, 0, 0 );
     refresh();
@@ -586,6 +608,42 @@ ncursio::ncursio()
         else waddstr( bt_gr_pad, ", " );
     }
     prefresh( bt_gr_pad, 0, 0, grds_sty, grds_stx, grds_eny, grds_enx );
+    //
+    // Output the heap monitoring description display
+    ostringstream hpdesc;
+    heap_mn.disp_desc( hpdesc );
+    mvwaddstr( hpmn_desc, 1, 0, hpdesc.str().c_str() );
+    wrefresh( hpmn_desc );
+    // GGG - Output new heap monitor info to curses screen
+    ostringstream hpvals;
+    heap_mn.disp_values( hpvals );
+    mvwaddstr( hpmn_vals, 0, 0, hpvals.str().c_str() );
+    wrefresh( hpmn_vals );
+    // Output the String stream sizes description display
+    mvwaddstr( sstrm_desc, 0, 0, "String stream\n    sizes\n  infstrm\n  "
+      "grfstrm\n  dbstrm\n  erstrm\n  bsvistrm\n  Total bytes" );
+    wrefresh( sstrm_desc );
+    // GGG - Output current String stream sizes info to curses screen
+    hpvals.str( "" );
+    hpvals <<
+      setw( v_wid ) <<  infstrm.str().size() <<
+      setw( v_wid ) <<  infstrm.str().capacity() << endl <<
+      setw( v_wid ) <<  grfstrm.str().size() <<
+      setw( v_wid ) <<  grfstrm.str().capacity() << endl <<
+      setw( v_wid ) <<   dbstrm.str().size() <<
+      setw( v_wid ) <<   dbstrm.str().capacity() << endl <<
+      setw( v_wid ) <<   erstrm.str().size() <<
+      setw( v_wid ) <<   erstrm.str().capacity() << endl <<
+      setw( v_wid ) << bsvistrm.str().size() <<
+      setw( v_wid ) << bsvistrm.str().capacity() << endl <<
+      setw( v_wid ) << infstrm.str().size() + grfstrm.str().size() +
+      dbstrm.str().size() + erstrm.str().size() + bsvistrm.str().size() <<
+      setw( v_wid ) << infstrm.str().capacity() + grfstrm.str().capacity() +
+      dbstrm.str().capacity() + erstrm.str().capacity() +
+      bsvistrm.str().capacity();
+    mvwaddstr( sstrm_vals, 2, 0, hpvals.str().c_str() );
+    mvwaddstr( sstrm_vals, 1, 0, "          Sizes       Capacities" );
+    wrefresh( sstrm_vals );
     gr_pd_mnrw = 0;
     gr_pd_mncl = 0;
     set_arg_val = 0;
@@ -604,8 +662,47 @@ ncursio::ncursio()
 
 ncursio::~ncursio()
 {
+    struct dummy {
+        void sh_heap()
+        {
+            while ( !heap_mn.is_new_info() ) heap_mn.get_info();
+            ostringstream idisp;
+            heap_mn.disp_info( idisp );
+            gout << idisp.str() << endl;
+        }
+    } d;
     if ( isendwin() == false )
       endwin();               /* End curses mode        */
+    gout << endl << "Running the ncursio destructor." << endl;
+    d.sh_heap();
+    gout << endl << "Running delwin( bt_gr_pad )." << endl;
+    delwin( bt_gr_pad );
+    d.sh_heap();
+    gout << endl << "Running delwin( bt_dbg )." << endl;
+    delwin( bt_dbg );
+    d.sh_heap();
+    gout << endl << "Running delwin( bt_main )." << endl;
+    delwin( bt_main );
+    d.sh_heap();
+    gout << endl << "Running delwin( bt_info )." << endl;
+    delwin( bt_info );
+    d.sh_heap();
+    gout << endl << "Running delwin( hpmn_desc )." << endl;
+    delwin( hpmn_desc );
+    d.sh_heap();
+    gout << endl << "Running delwin( hpmn_vals )." << endl;
+    delwin( hpmn_vals );
+    d.sh_heap();
+    gout << endl << "Running delwin( sstrm_desc )." << endl;
+    delwin( sstrm_desc );
+    d.sh_heap();
+    gout << endl << "Running delwin( sstrm_vals )." << endl;
+    delwin( sstrm_vals );
+    d.sh_heap();
+    gout << endl << "Running delwin( curscr )." << endl;
+    delwin( curscr );
+    d.sh_heap();
+    foiorf = nullptr;
 }
 
 int16_t ncursio::mnloop( int16_t n_iterations )
@@ -705,6 +802,7 @@ int16_t ncursio::mnloop( int16_t n_iterations )
         {
             if ( --iter_left == 0 ) run_loop = false;
         }
+        heap_mn.get_info();
     }
     return chr_in;
 }
@@ -895,6 +993,34 @@ int16_t ncursio::manage_debug_win()
     //   'p'aused until the 'c'ontinue command is sent.
     static int dbstrm_pos = 0;
     static int16_t lines_left = 0;
+    if ( heap_mn.is_new_info() )
+    {
+        // GGG - Output new heap monitor info to curses screen
+        ostringstream hpvals;
+        heap_mn.disp_values( hpvals );
+        mvwaddstr( hpmn_vals, 0, 0, hpvals.str().c_str() );
+        wrefresh( hpmn_vals );
+        // GGG - Output current String stream sizes info to curses screen
+        hpvals.str( "" );
+        hpvals <<
+          setw( v_wid ) <<  infstrm.str().size() <<
+          setw( v_wid ) <<  infstrm.str().capacity() << endl <<
+          setw( v_wid ) <<  grfstrm.str().size() <<
+          setw( v_wid ) <<  grfstrm.str().capacity() << endl <<
+          setw( v_wid ) <<   dbstrm.str().size() <<
+          setw( v_wid ) <<   dbstrm.str().capacity() << endl <<
+          setw( v_wid ) <<   erstrm.str().size() <<
+          setw( v_wid ) <<   erstrm.str().capacity() << endl <<
+          setw( v_wid ) << bsvistrm.str().size() <<
+          setw( v_wid ) << bsvistrm.str().capacity() << endl <<
+          setw( v_wid ) << infstrm.str().size() + grfstrm.str().size() +
+          dbstrm.str().size() + erstrm.str().size() + bsvistrm.str().size() <<
+          setw( v_wid ) << infstrm.str().capacity() + grfstrm.str().capacity() +
+          dbstrm.str().capacity() + erstrm.str().capacity() +
+          bsvistrm.str().capacity();
+        mvwaddstr( sstrm_vals, 2, 0, hpvals.str().c_str() );
+        wrefresh( sstrm_vals );
+    }
     int new_dbstrm_count = dbstrm.str().size() - dbstrm_pos;
     if ( new_dbstrm_count < 10 ) return new_dbstrm_count;
     int16_t dby __attribute__(( unused )), dbx;

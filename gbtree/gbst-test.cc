@@ -60,12 +60,18 @@ using namespace std;
 void atexit_handl_1()
 {
     cout << "at exit handler number 1." << endl;
+    cout << "Heap info at handler number 1." << endl;
+    while ( !heap_mn.is_new_info() ) heap_mn.get_info();
+    ostringstream idisp;
+    heap_mn.disp_info( idisp );
+    cout << idisp.str() << endl;
 }
 bool in_main = false;
 
 flag_set pflg;
 #ifdef INdevel  // Declarations/definitions/code for development only
 debug_flags dbgf;
+heap_mon_class heap_mn;
 #endif  //  #ifdef INdevel
 
 int run_test_set( ifstream& f2proc, int start_str_num = 0 );
@@ -192,6 +198,10 @@ int main(int argc, char* argv[])
     }
     else if ( pflg.show_any )
     {
+        heap_mn.get_info();
+        ostringstream idisp;
+        heap_mn.disp_info( idisp );
+        cout << idisp.str() << endl;
         cout << "File " << file2process << " is open." << endl;
     }
 #ifdef INdevel
@@ -332,6 +342,10 @@ int main(int argc, char* argv[])
     if ( pflg.show_info_output )
     {
             // pre-ncurses
+        while ( !heap_mn.is_new_info() ) heap_mn.get_info();
+        ostringstream idisp;
+        heap_mn.disp_info( idisp );
+        cout << idisp.str() << endl;
         cout << endl <<
           "This is the fo-string-test program designed to test " << endl <<
           "the name string management for the file organizer." << endl;
@@ -358,6 +372,12 @@ int main(int argc, char* argv[])
     // Temporary view of the math processing
     //   if ( grfstrm.str().size() > 5 ) f4info << grfstrm.str() << endl;
 #endif // #ifdef INFOdisplay
+    cout << grfstrm.str() << endl;
+    cout << "Heap info at end of fo-string-test program." << endl;
+    while ( !heap_mn.is_new_info() ) heap_mn.get_info();
+    ostringstream idisp;
+    heap_mn.disp_info( idisp );
+    cout << idisp.str() << endl;
     cout << "ending program and returning to the terminal prompt after"
       " running all destructors and cleaning memory." << endl;
     in_main = false;
@@ -388,6 +408,10 @@ int run_test_set( ifstream& f2proc, int start_str_num )
         //   is specified.
         //          1         2         3         4         5         6
         // 1234567890123456789012345678901234567890123456789012345678901234
+        while ( !heap_mn.is_new_info() ) heap_mn.get_info();
+        ostringstream idisp;
+        heap_mn.disp_info( idisp );
+        cout << idisp.str() << endl;
         int a = 4;
         string fspt_text =
           "The next available element in the fo_string_ptr array is ";
@@ -399,6 +423,7 @@ int run_test_set( ifstream& f2proc, int start_str_num )
         uint64_t *c = static_cast<uint64_t *>( cv );
         ostringstream drsiz;
         drsiz.imbue(std::locale("C"));
+        cout << "Made string stream drsiz imbued with the C locale" << endl;
 
         union tu
         {
@@ -439,6 +464,7 @@ int run_test_set( ifstream& f2proc, int start_str_num )
         }
         drsiz << "The size of flag_set struct is " << sizeof(flag_set) <<
           " bytes long." << endl;
+        cout << "Flag test done and sent to drsiz." << endl;
 
         mdtmp.fill( 0xa5 );
         mdtmp[ 0 ] = 0x80;
@@ -512,12 +538,15 @@ int run_test_set( ifstream& f2proc, int start_str_num )
             dbg_arg <<= 1;
         }
         drsiz << endl;
+        cout << "Debug arg test done and sent to drsiz." << endl;
 #endif  //  #ifdef INdevel
         code_point_cmpct tst_ary[ 8 ];
         drsiz << "The size of code_point_cmpct struct is " <<
           sizeof(code_point_cmpct) << " bytes long, 8 element array is " <<
           sizeof(tst_ary) << " bytes long." <<  endl;
+        cout << "code_point_cmpct test done and sent to drsiz." << endl;
         utf8_rcrd_type tmp_rcrd;
+        cout << "utf8_rcrd_type tmp_rcrd has been defined." << endl;
         drsiz << "The addresses of variables are:  " <<
           "function run_test_set is " << addressof( run_test_set ) <<
           ", instance gbst_iface is " << &gbst_iface <<
@@ -534,6 +563,7 @@ int run_test_set( ifstream& f2proc, int start_str_num )
             drsiz << "pos " << a << " = " << *(b+a) << " , and " << *(c+a) <<
               endl;
         }
+        cout << "Addresses of strings test done and sent to drsiz." << endl;
         drsiz << "The size of the string class is " << sizeof(string) <<
           " and the size of the tstr string variable is " <<
           sizeof(tstr) << " and the size of the fspt_text string is " <<
@@ -542,6 +572,7 @@ int run_test_set( ifstream& f2proc, int start_str_num )
           " and the size of the index_vec vector type is " <<
           sizeof(index_vec) << " and the size of the ivs vector is " <<
            sizeof(ivs) << "." << endl;
+        cout << "Tests through str_utf8 size done and sent to drsiz." << endl;
         drsiz << "The ivs vector size = " << ivs.size() << ", capacity = " <<
           ivs.capacity() << ", and available indexes = {";
         bool first_out = true;
@@ -549,6 +580,7 @@ int run_test_set( ifstream& f2proc, int start_str_num )
         {
             drsiz << ( first_out ? ( first_out = false, " " ) : ", " ) << vnum;
         }
+        cout << "Tests done through ivs vector and sent to drsiz." << endl;
         drsiz << " }." << endl;
         drsiz << "The size of the gbtree class is " << sizeof(gbtree) <<
           " and the size of the utf8_rcrd_type is " <<
@@ -568,6 +600,10 @@ int run_test_set( ifstream& f2proc, int start_str_num )
           "The fo_string_ptr array has " << ptr_tbl_max_rcrd <<
           " total records available." << endl; //  <<
         cout << drsiz.str();    // pre-ncurses
+        while ( !heap_mn.is_new_info() ) heap_mn.get_info();
+        idisp.str( "" );
+        heap_mn.disp_info( idisp );
+        cout << idisp.str() << endl;
     }
     if ( pflg.test_base_search_vars )
     {
@@ -589,6 +625,9 @@ int run_test_set( ifstream& f2proc, int start_str_num )
     cin >> respns;
     if ( respns.find_first_of( "Nn" ) < respns.size() ) return 0;
     ncursio fo_io;
+    fo_io.mnloop( 20 );
+    fo_io.manage_debug_win();
+    fo_io.mnloop( 50 );
     foiorf = &fo_io;
 #endif   //  #ifdef USEncurses
 
@@ -688,6 +727,11 @@ int run_test_set( ifstream& f2proc, int start_str_num )
         md5_rcrd_type md5_rec;
         md5_rec.traverse_hash_records();
     }
+
+#ifdef USEncurses
+    fo_io.manage_main_win();
+#endif   //  #ifdef USEncurses
+
     //
     // Show some information about the programs data requirements
     //   Sizes of the various records are important to keep minimised.
@@ -734,6 +778,11 @@ int run_test_set( ifstream& f2proc, int start_str_num )
             mem_num++;
         }
         iout << " }." << endl;
+        gout << endl << "Heap info at end of run_test_set() function." << endl;
+        while ( !heap_mn.is_new_info() ) heap_mn.get_info();
+        ostringstream idisp;
+        heap_mn.disp_info( idisp );
+        gout << idisp.str() << endl;
     }
     utf8_rcrd_type tmp_rcrd;
     if ( pflg.show_name_store_strings )

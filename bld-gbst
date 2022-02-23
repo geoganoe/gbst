@@ -59,11 +59,15 @@ echo "Running compiler g++ -O2 -Wall -std=c++17 -c ncursio.cc in $PWD"
 g++ -O2 -Wall -std=c++17 -c ncursio.cc || getout
 echo "Running compiler g++ -O2 -Wall -std=c++17 -c btree-graph-class.cc in $PWD"
 g++ -O2 -Wall -std=c++17 -c btree-graph-class.cc || getout
+echo "Running compiler g++ -O2 -Wall -std=c++17 -c heap-mon-util.cc in $PWD"
+g++ -O2 -Wall -std=c++17 -c heap-mon-util.cc || getout
 
 echo "Updating library ar -Prs ../lib/libbtutil.a gbst-iface.o utf8-rcrd-type.o"
 ar -Prs ../lib/libbtutil.a gbst-iface.o utf8-rcrd-type.o
 echo "Updating library ar -Prs ../lib/libbtutil.a gbtree.o utf8-name-store.o"
 ar -Prs ../lib/libbtutil.a gbtree.o utf8-name-store.o
+echo "Updating library ar -Prs ../lib/libbtutil.a heap-mon-util.o"
+ar -Prs ../lib/libbtutil.a heap-mon-util.o
 echo "Updating library ar -Prs ../lib/libbtutil.a hash-rcrd-type.o fo-utils.o"
 ar -Prs ../lib/libbtutil.a hash-rcrd-type.o fo-utils.o
 echo "Updating library ar -Prs ../lib/libbtutil.a ncursio.o btree-graph-class.o"
