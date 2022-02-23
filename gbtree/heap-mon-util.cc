@@ -13,33 +13,40 @@
 #include "heap-mon-util.h"
 #include <iomanip>
 
-struct mallinfo2 heap_mon_class::minimums;
-struct mallinfo2 heap_mon_class::maximums;
+struct mallinfo2 heap_mon_class::minimums[ 5 ];
+struct mallinfo2 heap_mon_class::maximums[ 5 ];
 struct mallinfo2 heap_mon_class::acc3sec;
-struct mallinfo2 heap_mon_class::min_steps[ 20 ];
+struct mallinfo2 heap_mon_class::mnut_stps[ 20 ];
 int heap_mon_class::step_idx;
+int heap_mon_class::tst_idx;
 uint32_t heap_mon_class::smpl_cnt;
 struct mallinfo2 heap_mon_class::minute_avg;
 info_rmndr heap_mon_class::m_avg_remndr;
 chrono::steady_clock::time_point heap_mon_class::strt_tm;
-chrono::steady_clock::time_point heap_mon_class::last_tm;
+int64_t heap_mon_class::last_run_usec;
 int64_t heap_mon_class::intvl_usec;
 int64_t heap_mon_class::run_usec;
 int64_t heap_mon_class::nxt_step;
+int64_t heap_mon_class::mnmx_nxt_step;
 
 heap_mon_class::heap_mon_class()
 {
     mi = mallinfo2();
     strt_tm = chrono::steady_clock::now();
-    last_tm = strt_tm;
     cur_tm = strt_tm;
-    minimums = mi;
-    maximums = mi;
+    last_run_usec = 0;
+    for ( int idx = 0; idx < 5; idx++ )
+    {
+        minimums[ idx ] = mi;
+        maximums[ idx ] = mi;
+    }
     acc3sec = mi;
-    for ( int idx = 0; idx < 20; idx++ ) min_steps[ idx ] = mi;
+    for ( int idx = 0; idx < 20; idx++ ) mnut_stps[ idx ] = mi;
     step_idx = 0;
+    tst_idx = 0;
     smpl_cnt = 1;
     nxt_step = usec_per_3sec;
+    mnmx_nxt_step = usec_per_3sec * 4;
     minute_avg = mi;
     m_avg_remndr.arena = 0;
     m_avg_remndr.ordblks = 0;
@@ -56,32 +63,29 @@ heap_mon_class::heap_mon_class()
 
 void heap_mon_class::get_info()
 {
-  // Use different averaging method
-  //    struct chk_values {
-  //        void calc( size_t &tval, size_t &min, size_t &minavg,
-  //          size_t &max, int64_t &rmndr )
-  //        {
-  //            if ( tval < min ) min = tval;
-  //            else if ( tval > max ) max = tval;
-  //            int64_t cdif = rmndr + ( tval - minavg ) * intvl_usec;
-  //            int64_t chgavg = cdif / usec_per_minute;
-  //            rmndr = cdif - chgavg * usec_per_minute;
-  //            minavg += chgavg;
-  //        }
-  //    } chk;
     struct chk_values {
         bool step_time;
 
-        void calc( size_t &tval, size_t &min, size_t &minavg,
-          size_t &max, size_t &mnst, size_t &ac3s, int64_t &rmndr )
+        void calc( MA_SZT &tval, MA_SZT *min[ 5 ], MA_SZT &minavg,
+          MA_SZT *max[ 5 ], MA_SZT &mnst, MA_SZT &ac3s, MA_INT &rmndr )
         {
-            if ( tval < min ) min = tval;
-            else if ( tval > max ) max = tval;
+            if ( tval < *min[ 4 ] )
+            {
+                *min[ 4 ] = tval;
+                for ( int idx = 3; idx >= 0 && tval < *min[ idx ]; idx-- )
+                  *min[ idx ] = tval;
+            }
+            else if ( tval > *max[ 4 ] )
+            {
+                *max[ 4 ] = tval;
+                for ( int idx = 3; idx >= 0 && tval > *max[ idx ]; idx-- )
+                  *max[ idx ] = tval;
+            }
             if ( step_time )
             {
-                size_t new_mnst = ( ac3s + smpl_cnt / 2 ) / smpl_cnt;
+                MA_SZT new_mnst = ( ac3s + smpl_cnt / 2 ) / smpl_cnt;
                 rmndr += new_mnst - mnst;
-                int64_t avg_incr = rmndr / 20;
+                MA_INT avg_incr = rmndr / 20;
                 if ( avg_incr > 0 )
                 {
                     minavg += avg_incr;
@@ -89,7 +93,7 @@ void heap_mon_class::get_info()
                 }
                 else if ( avg_incr < 0 )
                 {
-                    size_t avgt = -avg_incr;
+                    MA_SZT avgt = -avg_incr;
                     minavg = minavg > avgt ? minavg - avgt : 0;
                     rmndr -= avg_incr * 20;
                 }
@@ -108,44 +112,101 @@ void heap_mon_class::get_info()
         }
     } chk;
     cur_tm = chrono::steady_clock::now();
-    intvl_usec =
-      chrono::duration_cast<chrono::microseconds>( cur_tm - last_tm ).count();
     run_usec =
       chrono::duration_cast<chrono::microseconds>( cur_tm - strt_tm ).count();
+    intvl_usec = run_usec - last_run_usec;
     if ( intvl_usec < min_usec_intvl ) return;
     mi = mallinfo2();
+    MA_SZT *min_ptrs[ 5 ];
+    MA_SZT *max_ptrs[ 5 ];
     chk.step_time = run_usec > nxt_step;
-    chk.calc( mi.arena, minimums.arena, minute_avg.arena, maximums.arena,
-      min_steps[ step_idx ].arena, acc3sec.arena, m_avg_remndr.arena );
-    chk.calc( mi.ordblks, minimums.ordblks, minute_avg.ordblks,
-      maximums.ordblks, min_steps[ step_idx ].ordblks, acc3sec.ordblks,
+    for ( int idx = 0; idx < 5; idx++ )
+    {
+        min_ptrs[ idx ] = &minimums[ idx ].arena;
+        max_ptrs[ idx ] = &maximums[ idx ].arena;
+    }
+    chk.calc( mi.arena, min_ptrs, minute_avg.arena, max_ptrs,
+      mnut_stps[ step_idx ].arena, acc3sec.arena, m_avg_remndr.arena );
+    for ( int idx = 0; idx < 5; idx++ )
+    {
+        min_ptrs[ idx ] = &minimums[ idx ].ordblks;
+        max_ptrs[ idx ] = &maximums[ idx ].ordblks;
+    }
+    chk.calc( mi.ordblks, min_ptrs, minute_avg.ordblks,
+      max_ptrs, mnut_stps[ step_idx ].ordblks, acc3sec.ordblks,
       m_avg_remndr.ordblks );
-    chk.calc( mi.smblks, minimums.smblks, minute_avg.smblks, maximums.smblks,
-      min_steps[ step_idx ].smblks, acc3sec.smblks, m_avg_remndr.smblks );
-    chk.calc( mi.hblks, minimums.hblks, minute_avg.hblks, maximums.hblks,
-      min_steps[ step_idx ].hblks, acc3sec.hblks, m_avg_remndr.hblks );
-    chk.calc( mi.hblkhd, minimums.hblkhd, minute_avg.hblkhd, maximums.hblkhd,
-      min_steps[ step_idx ].hblkhd, acc3sec.hblkhd, m_avg_remndr.hblkhd );
-    chk.calc( mi.fsmblks, minimums.fsmblks, minute_avg.fsmblks,
-      maximums.fsmblks, min_steps[ step_idx ].fsmblks, acc3sec.fsmblks,
+    for ( int idx = 0; idx < 5; idx++ )
+    {
+        min_ptrs[ idx ] = &minimums[ idx ].smblks;
+        max_ptrs[ idx ] = &maximums[ idx ].smblks;
+    }
+    chk.calc( mi.smblks, min_ptrs, minute_avg.smblks, max_ptrs,
+      mnut_stps[ step_idx ].smblks, acc3sec.smblks, m_avg_remndr.smblks );
+    for ( int idx = 0; idx < 5; idx++ )
+    {
+        min_ptrs[ idx ] = &minimums[ idx ].hblks;
+        max_ptrs[ idx ] = &maximums[ idx ].hblks;
+    }
+    chk.calc( mi.hblks, min_ptrs, minute_avg.hblks, max_ptrs,
+      mnut_stps[ step_idx ].hblks, acc3sec.hblks, m_avg_remndr.hblks );
+    for ( int idx = 0; idx < 5; idx++ )
+    {
+        min_ptrs[ idx ] = &minimums[ idx ].hblkhd;
+        max_ptrs[ idx ] = &maximums[ idx ].hblkhd;
+    }
+    chk.calc( mi.hblkhd, min_ptrs, minute_avg.hblkhd, max_ptrs,
+      mnut_stps[ step_idx ].hblkhd, acc3sec.hblkhd, m_avg_remndr.hblkhd );
+    for ( int idx = 0; idx < 5; idx++ )
+    {
+        min_ptrs[ idx ] = &minimums[ idx ].fsmblks;
+        max_ptrs[ idx ] = &maximums[ idx ].fsmblks;
+    }
+    chk.calc( mi.fsmblks, min_ptrs, minute_avg.fsmblks,
+      max_ptrs, mnut_stps[ step_idx ].fsmblks, acc3sec.fsmblks,
       m_avg_remndr.fsmblks );
-    chk.calc( mi.uordblks, minimums.uordblks, minute_avg.uordblks,
-      maximums.uordblks, min_steps[ step_idx ].uordblks, acc3sec.uordblks,
+    for ( int idx = 0; idx < 5; idx++ )
+    {
+        min_ptrs[ idx ] = &minimums[ idx ].uordblks;
+        max_ptrs[ idx ] = &maximums[ idx ].uordblks;
+    }
+    chk.calc( mi.uordblks, min_ptrs, minute_avg.uordblks,
+      max_ptrs, mnut_stps[ step_idx ].uordblks, acc3sec.uordblks,
       m_avg_remndr.uordblks );
-    chk.calc( mi.fordblks, minimums.fordblks, minute_avg.fordblks,
-      maximums.fordblks, min_steps[ step_idx ].fordblks, acc3sec.fordblks,
+    for ( int idx = 0; idx < 5; idx++ )
+    {
+        min_ptrs[ idx ] = &minimums[ idx ].fordblks;
+        max_ptrs[ idx ] = &maximums[ idx ].fordblks;
+    }
+    chk.calc( mi.fordblks, min_ptrs, minute_avg.fordblks,
+      max_ptrs, mnut_stps[ step_idx ].fordblks, acc3sec.fordblks,
       m_avg_remndr.fordblks );
-    chk.calc( mi.keepcost, minimums.keepcost, minute_avg.keepcost,
-      maximums.keepcost, min_steps[ step_idx ].keepcost, acc3sec.keepcost,
+    for ( int idx = 0; idx < 5; idx++ )
+    {
+        min_ptrs[ idx ] = &minimums[ idx ].keepcost;
+        max_ptrs[ idx ] = &maximums[ idx ].keepcost;
+    }
+    chk.calc( mi.keepcost, min_ptrs, minute_avg.keepcost,
+      max_ptrs, mnut_stps[ step_idx ].keepcost, acc3sec.keepcost,
       m_avg_remndr.keepcost );
     if ( chk.step_time )
     {
         step_idx = step_idx < 19 ? step_idx + 1 : 0;
         nxt_step += usec_per_3sec;
         smpl_cnt = 1;
+        if ( run_usec > mnmx_nxt_step )
+        {
+            for ( int idx = 1; idx < 5; idx ++ )
+            {
+                minimums[ idx - 1 ] = minimums[ idx ];
+                maximums[ idx - 1 ] = maximums[ idx ];
+            }
+            minimums[ 4 ] = mi;
+            maximums[ 4 ] = mi;
+            mnmx_nxt_step += ( usec_per_3sec * 4 );
+        }
     }
     else smpl_cnt++;
-    last_tm = cur_tm;
+    last_run_usec = run_usec;
     new_info = true;
 }
 
@@ -165,62 +226,83 @@ void heap_mon_class::disp_desc( ostream& ostrm )
 
 void heap_mon_class::disp_values( ostream& ostrm )
 {
-    ostrm << "      Run time µsec = " << run_usec << endl <<
+    int tst = tst_idx;
+    ostrm << "      Run time µsec = " << run_usec <<
+      ", tst index = " << tst << endl << "  Recent Minimum          latest"
      // 2345678901234567890123456789012345678901234567890
-      "   Minimum      latest    Minute avg   Maximum" << endl <<
-      setw( v_wid ) << minimums.arena << setw( v_wid ) << mi.arena <<
-      setw( v_wid ) << minute_avg.arena << setw( v_wid ) << maximums.arena << endl <<
-      setw( v_wid ) << minimums.ordblks << setw( v_wid ) << mi.ordblks <<
-      setw( v_wid ) << minute_avg.ordblks << setw( v_wid ) << maximums.ordblks << endl <<
-      setw( v_wid ) << minimums.smblks << setw( v_wid ) << mi.smblks <<
-      setw( v_wid ) << minute_avg.smblks << setw( v_wid ) << maximums.smblks << endl <<
-      setw( v_wid ) << minimums.hblks << setw( v_wid ) << mi.hblks <<
-      setw( v_wid ) << minute_avg.hblks << setw( v_wid ) << maximums.hblks << endl <<
-      setw( v_wid ) << minimums.hblkhd << setw( v_wid ) << mi.hblkhd <<
-      setw( v_wid ) << minute_avg.hblkhd << setw( v_wid ) << maximums.hblkhd << endl <<
-      setw( v_wid ) << minimums.fsmblks << setw( v_wid ) << mi.fsmblks <<
-      setw( v_wid ) << minute_avg.fsmblks << setw( v_wid ) << maximums.fsmblks << endl <<
-      setw( v_wid ) << minimums.uordblks << setw( v_wid ) << mi.uordblks <<
-      setw( v_wid ) << minute_avg.uordblks << setw( v_wid ) << maximums.uordblks << endl <<
-      setw( v_wid ) << minimums.fordblks << setw( v_wid ) << mi.fordblks <<
-      setw( v_wid ) << minute_avg.fordblks << setw( v_wid ) << maximums.fordblks << endl <<
-      setw( v_wid ) << minimums.keepcost << setw( v_wid ) << mi.keepcost <<
-      setw( v_wid ) << minute_avg.keepcost << setw( v_wid ) << maximums.keepcost;
+      "      Minute avg  Recent Maximum" << endl <<
+      setw( v_wid ) << minimums[ tst ].arena << setw( v_wid ) << mi.arena <<
+      setw( v_wid ) << minute_avg.arena << setw( v_wid ) <<
+      maximums[ tst ].arena << endl <<
+      setw( v_wid ) << minimums[ tst ].ordblks << setw( v_wid ) << mi.ordblks <<
+      setw( v_wid ) << minute_avg.ordblks << setw( v_wid ) <<
+      maximums[ tst ].ordblks << endl <<
+      setw( v_wid ) << minimums[ tst ].smblks << setw( v_wid ) << mi.smblks <<
+      setw( v_wid ) << minute_avg.smblks << setw( v_wid ) <<
+      maximums[ tst ].smblks << endl <<
+      setw( v_wid ) << minimums[ tst ].hblks << setw( v_wid ) << mi.hblks <<
+      setw( v_wid ) << minute_avg.hblks << setw( v_wid ) <<
+      maximums[ tst ].hblks << endl <<
+      setw( v_wid ) << minimums[ tst ].hblkhd << setw( v_wid ) << mi.hblkhd <<
+      setw( v_wid ) << minute_avg.hblkhd << setw( v_wid ) <<
+      maximums[ tst ].hblkhd << endl <<
+      setw( v_wid ) << minimums[ tst ].fsmblks << setw( v_wid ) << mi.fsmblks <<
+      setw( v_wid ) << minute_avg.fsmblks << setw( v_wid ) <<
+      maximums[ tst ].fsmblks << endl <<
+      setw( v_wid ) << minimums[ tst ].uordblks << setw( v_wid ) <<
+      mi.uordblks << setw( v_wid ) << minute_avg.uordblks << setw( v_wid ) <<
+      maximums[ tst ].uordblks << endl <<
+      setw( v_wid ) << minimums[ tst ].fordblks << setw( v_wid ) <<
+      mi.fordblks << setw( v_wid ) << minute_avg.fordblks << setw( v_wid ) <<
+      maximums[ tst ].fordblks << endl <<
+      setw( v_wid ) << minimums[ tst ].keepcost << setw( v_wid ) <<
+      mi.keepcost << setw( v_wid ) << minute_avg.keepcost << setw( v_wid ) <<
+      maximums[ tst ].keepcost;
     new_info = false;
 }
 
 void heap_mon_class::disp_info( ostream& ostrm )
 {
+    int tst = 0;
     ostrm << "                         Run time µsec = " << run_usec << endl <<
-      setw( 35 ) << "    Heap monitor info display"       <<
-      "     Minimum          latest        Minute avg       Maximum" << endl <<
+      setw( 35 ) << "    Heap monitor info display" << "  Recent Minimum"
+      "          latest      Minute avg  Recent Maximum" << endl <<
       setw( 35 ) << "Normal heap space allocated (bytes)" <<
-      setw( v_wid ) << minimums.arena << setw( v_wid ) << mi.arena <<
-      setw( v_wid ) << minute_avg.arena << setw( v_wid ) << maximums.arena << endl <<
+      setw( v_wid ) << minimums[ tst ].arena << setw( v_wid ) << mi.arena <<
+      setw( v_wid ) << minute_avg.arena << setw( v_wid ) <<
+      maximums[ tst ].arena << endl <<
       setw( 35 ) << "Number of free chunks"               <<
-      setw( v_wid ) << minimums.ordblks << setw( v_wid ) << mi.ordblks <<
-      setw( v_wid ) << minute_avg.ordblks << setw( v_wid ) << maximums.ordblks << endl <<
+      setw( v_wid ) << minimums[ tst ].ordblks << setw( v_wid ) << mi.ordblks <<
+      setw( v_wid ) << minute_avg.ordblks << setw( v_wid ) <<
+      maximums[ tst ].ordblks << endl <<
       setw( 35 ) << "Number of free fastbin blocks"       <<
-      setw( v_wid ) << minimums.smblks << setw( v_wid ) << mi.smblks <<
-      setw( v_wid ) << minute_avg.smblks << setw( v_wid ) << maximums.smblks << endl <<
+      setw( v_wid ) << minimums[ tst ].smblks << setw( v_wid ) << mi.smblks <<
+      setw( v_wid ) << minute_avg.smblks << setw( v_wid ) <<
+      maximums[ tst ].smblks << endl <<
       setw( 35 ) << "Number of mmapped regions"           <<
-      setw( v_wid ) << minimums.hblks << setw( v_wid ) << mi.hblks <<
-      setw( v_wid ) << minute_avg.hblks << setw( v_wid ) << maximums.hblks << endl <<
+      setw( v_wid ) << minimums[ tst ].hblks << setw( v_wid ) << mi.hblks <<
+      setw( v_wid ) << minute_avg.hblks << setw( v_wid ) <<
+      maximums[ tst ].hblks << endl <<
       setw( 35 ) << "Space allocd in mmapped reg (bytes)" <<
-      setw( v_wid ) << minimums.hblkhd << setw( v_wid ) << mi.hblkhd <<
-      setw( v_wid ) << minute_avg.hblkhd << setw( v_wid ) << maximums.hblkhd << endl <<
+      setw( v_wid ) << minimums[ tst ].hblkhd << setw( v_wid ) << mi.hblkhd <<
+      setw( v_wid ) << minute_avg.hblkhd << setw( v_wid ) <<
+      maximums[ tst ].hblkhd << endl <<
       setw( 35 ) << "Space in freed fastbin blks (bytes)" <<
-      setw( v_wid ) << minimums.fsmblks << setw( v_wid ) << mi.fsmblks <<
-      setw( v_wid ) << minute_avg.fsmblks << setw( v_wid ) << maximums.fsmblks << endl <<
-      setw( 35 ) << "Total allocated space (bytes)"       <<
-      setw( v_wid ) << minimums.uordblks << setw( v_wid ) << mi.uordblks <<
-      setw( v_wid ) << minute_avg.uordblks << setw( v_wid ) << maximums.uordblks << endl <<
-      setw( 35 ) << "Total free space (bytes)"            <<
-      setw( v_wid ) << minimums.fordblks << setw( v_wid ) << mi.fordblks <<
-      setw( v_wid ) << minute_avg.fordblks << setw( v_wid ) << maximums.fordblks << endl <<
-      setw( 35 ) << "Top-most, releasable space (bytes)"  <<
-      setw( v_wid ) << minimums.keepcost << setw( v_wid ) << mi.keepcost <<
-      setw( v_wid ) << minute_avg.keepcost << setw( v_wid ) << maximums.keepcost;
+      setw( v_wid ) << minimums[ tst ].fsmblks << setw( v_wid ) << mi.fsmblks <<
+      setw( v_wid ) << minute_avg.fsmblks << setw( v_wid ) <<
+      maximums[ tst ].fsmblks << endl <<
+      setw( 35 ) << "Total allocated space (bytes)" << setw( v_wid ) <<
+      minimums[ tst ].uordblks << setw( v_wid ) << mi.uordblks <<
+      setw( v_wid ) << minute_avg.uordblks << setw( v_wid ) <<
+      maximums[ tst ].uordblks << endl <<
+      setw( 35 ) << "Total free space (bytes)" << setw( v_wid ) <<
+      minimums[ tst ].fordblks << setw( v_wid ) << mi.fordblks <<
+      setw( v_wid ) << minute_avg.fordblks << setw( v_wid ) <<
+      maximums[ tst ].fordblks << endl <<
+      setw( 35 ) << "Top-most, releasable space (bytes)"  << setw( v_wid ) <<
+      minimums[ tst ].keepcost << setw( v_wid ) << mi.keepcost <<
+      setw( v_wid ) << minute_avg.keepcost << setw( v_wid ) <<
+      maximums[ tst ].keepcost;
     new_info = false;
 }
 

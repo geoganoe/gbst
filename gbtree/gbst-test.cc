@@ -198,6 +198,16 @@ int main(int argc, char* argv[])
     }
     else if ( pflg.show_any )
     {
+        cout << "GNU C compiler version: major = " << __GNUC__ << ", and minor = " <<
+          __GNUC_MINOR__ << "." << endl;
+        cout << "GNU lib C version: major = " << __GLIBC__ << ", and minor = " <<
+          __GLIBC_MINOR__ << "." << endl;
+#if __GLIBC_PREREQ(2, 33)
+        cout << "This system meets the stated GNU lib C requirements." << endl;
+#else
+        cout << "This system does not meet the GNU lib C requirements"
+          " and will use an alternate approach." << endl;
+#endif
         heap_mn.get_info();
         ostringstream idisp;
         heap_mn.disp_info( idisp );
