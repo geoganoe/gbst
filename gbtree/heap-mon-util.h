@@ -47,7 +47,7 @@ const uint16_t v_wid = 16;
 
 class heap_mon_class
 {
-    struct mallinfo2 mi;
+    static struct mallinfo2 mi;
     chrono::steady_clock::time_point cur_tm;
     bool new_info;
     static struct mallinfo2 minimums[ 5 ];

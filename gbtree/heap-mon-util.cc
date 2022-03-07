@@ -13,6 +13,7 @@
 #include "heap-mon-util.h"
 #include <iomanip>
 
+struct mallinfo2 heap_mon_class::mi;
 struct mallinfo2 heap_mon_class::minimums[ 5 ];
 struct mallinfo2 heap_mon_class::maximums[ 5 ];
 struct mallinfo2 heap_mon_class::acc3sec;
@@ -66,48 +67,48 @@ void heap_mon_class::get_info()
     struct chk_values {
         bool step_time;
 
-        void calc( MA_SZT &tval, MA_SZT *min[ 5 ], MA_SZT &minavg,
-          MA_SZT *max[ 5 ], MA_SZT &mnst, MA_SZT &ac3s, MA_INT &rmndr )
+        void calc( MA_SZT mallinfo2::* mfld, MA_INT info_rmndr::* rfld )
         {
-            if ( tval < *min[ 4 ] )
+            if ( mi.*mfld < minimums[ 4 ].*mfld )
             {
-                *min[ 4 ] = tval;
-                for ( int idx = 3; idx >= 0 && tval < *min[ idx ]; idx-- )
-                  *min[ idx ] = tval;
+                minimums[ 4 ].*mfld = mi.*mfld;
+                for ( int idx = 3; idx >= 0 && mi.*mfld < minimums[ idx ].*mfld;
+                  idx-- ) minimums[ idx ].*mfld = mi.*mfld;
             }
-            else if ( tval > *max[ 4 ] )
+            else if ( mi.*mfld > maximums[ 4 ].*mfld )
             {
-                *max[ 4 ] = tval;
-                for ( int idx = 3; idx >= 0 && tval > *max[ idx ]; idx-- )
-                  *max[ idx ] = tval;
+                maximums[ 4 ].*mfld = mi.*mfld;
+                for ( int idx = 3; idx >= 0 && mi.*mfld > maximums[ idx ].*mfld;
+                  idx-- ) maximums[ idx ].*mfld = mi.*mfld;
             }
             if ( step_time )
             {
-                MA_SZT new_mnst = ( ac3s + smpl_cnt / 2 ) / smpl_cnt;
-                rmndr += new_mnst - mnst;
-                MA_INT avg_incr = rmndr / 20;
+                MA_SZT new_mnst = ( acc3sec.*mfld + smpl_cnt / 2 ) / smpl_cnt;
+                m_avg_remndr.*rfld += new_mnst - mnut_stps[ step_idx ].*mfld;
+                MA_INT avg_incr = m_avg_remndr.*rfld / 20;
                 if ( avg_incr > 0 )
                 {
-                    minavg += avg_incr;
-                    rmndr -= avg_incr * 20;
+                    minute_avg.*mfld += avg_incr;
+                    m_avg_remndr.*rfld -= avg_incr * 20;
                 }
                 else if ( avg_incr < 0 )
                 {
                     MA_SZT avgt = -avg_incr;
-                    minavg = minavg > avgt ? minavg - avgt : 0;
-                    rmndr -= avg_incr * 20;
+                    minute_avg.*mfld =
+                      minute_avg.*mfld > avgt ? minute_avg.*mfld - avgt : 0;
+                    m_avg_remndr.*rfld -= avg_incr * 20;
                 }
                 else
                 {
-                    // rmndr remains less than a full increment so nothing
-                    //   to do
+                    // This m_avg_remndr field remains less than a full
+                    //   increment so nothing to do
                 }
-                mnst = new_mnst;
-                ac3s = tval;
+                mnut_stps[ step_idx ].*mfld = new_mnst;
+                acc3sec.*mfld = mi.*mfld;
             }
             else
             {
-                ac3s += tval;
+                acc3sec.*mfld += mi.*mfld;
             }
         }
     } chk;
@@ -117,77 +118,16 @@ void heap_mon_class::get_info()
     intvl_usec = run_usec - last_run_usec;
     if ( intvl_usec < min_usec_intvl ) return;
     mi = mallinfo2();
-    MA_SZT *min_ptrs[ 5 ];
-    MA_SZT *max_ptrs[ 5 ];
     chk.step_time = run_usec > nxt_step;
-    for ( int idx = 0; idx < 5; idx++ )
-    {
-        min_ptrs[ idx ] = &minimums[ idx ].arena;
-        max_ptrs[ idx ] = &maximums[ idx ].arena;
-    }
-    chk.calc( mi.arena, min_ptrs, minute_avg.arena, max_ptrs,
-      mnut_stps[ step_idx ].arena, acc3sec.arena, m_avg_remndr.arena );
-    for ( int idx = 0; idx < 5; idx++ )
-    {
-        min_ptrs[ idx ] = &minimums[ idx ].ordblks;
-        max_ptrs[ idx ] = &maximums[ idx ].ordblks;
-    }
-    chk.calc( mi.ordblks, min_ptrs, minute_avg.ordblks,
-      max_ptrs, mnut_stps[ step_idx ].ordblks, acc3sec.ordblks,
-      m_avg_remndr.ordblks );
-    for ( int idx = 0; idx < 5; idx++ )
-    {
-        min_ptrs[ idx ] = &minimums[ idx ].smblks;
-        max_ptrs[ idx ] = &maximums[ idx ].smblks;
-    }
-    chk.calc( mi.smblks, min_ptrs, minute_avg.smblks, max_ptrs,
-      mnut_stps[ step_idx ].smblks, acc3sec.smblks, m_avg_remndr.smblks );
-    for ( int idx = 0; idx < 5; idx++ )
-    {
-        min_ptrs[ idx ] = &minimums[ idx ].hblks;
-        max_ptrs[ idx ] = &maximums[ idx ].hblks;
-    }
-    chk.calc( mi.hblks, min_ptrs, minute_avg.hblks, max_ptrs,
-      mnut_stps[ step_idx ].hblks, acc3sec.hblks, m_avg_remndr.hblks );
-    for ( int idx = 0; idx < 5; idx++ )
-    {
-        min_ptrs[ idx ] = &minimums[ idx ].hblkhd;
-        max_ptrs[ idx ] = &maximums[ idx ].hblkhd;
-    }
-    chk.calc( mi.hblkhd, min_ptrs, minute_avg.hblkhd, max_ptrs,
-      mnut_stps[ step_idx ].hblkhd, acc3sec.hblkhd, m_avg_remndr.hblkhd );
-    for ( int idx = 0; idx < 5; idx++ )
-    {
-        min_ptrs[ idx ] = &minimums[ idx ].fsmblks;
-        max_ptrs[ idx ] = &maximums[ idx ].fsmblks;
-    }
-    chk.calc( mi.fsmblks, min_ptrs, minute_avg.fsmblks,
-      max_ptrs, mnut_stps[ step_idx ].fsmblks, acc3sec.fsmblks,
-      m_avg_remndr.fsmblks );
-    for ( int idx = 0; idx < 5; idx++ )
-    {
-        min_ptrs[ idx ] = &minimums[ idx ].uordblks;
-        max_ptrs[ idx ] = &maximums[ idx ].uordblks;
-    }
-    chk.calc( mi.uordblks, min_ptrs, minute_avg.uordblks,
-      max_ptrs, mnut_stps[ step_idx ].uordblks, acc3sec.uordblks,
-      m_avg_remndr.uordblks );
-    for ( int idx = 0; idx < 5; idx++ )
-    {
-        min_ptrs[ idx ] = &minimums[ idx ].fordblks;
-        max_ptrs[ idx ] = &maximums[ idx ].fordblks;
-    }
-    chk.calc( mi.fordblks, min_ptrs, minute_avg.fordblks,
-      max_ptrs, mnut_stps[ step_idx ].fordblks, acc3sec.fordblks,
-      m_avg_remndr.fordblks );
-    for ( int idx = 0; idx < 5; idx++ )
-    {
-        min_ptrs[ idx ] = &minimums[ idx ].keepcost;
-        max_ptrs[ idx ] = &maximums[ idx ].keepcost;
-    }
-    chk.calc( mi.keepcost, min_ptrs, minute_avg.keepcost,
-      max_ptrs, mnut_stps[ step_idx ].keepcost, acc3sec.keepcost,
-      m_avg_remndr.keepcost );
+    chk.calc( &mallinfo2::arena, &info_rmndr::arena );
+    chk.calc( &mallinfo2::ordblks, &info_rmndr::ordblks );
+    chk.calc( &mallinfo2::smblks, &info_rmndr::smblks );
+    chk.calc( &mallinfo2::hblks, &info_rmndr::hblks );
+    chk.calc( &mallinfo2::hblkhd, &info_rmndr::hblkhd );
+    chk.calc( &mallinfo2::fsmblks, &info_rmndr::fsmblks );
+    chk.calc( &mallinfo2::uordblks, &info_rmndr::uordblks );
+    chk.calc( &mallinfo2::fordblks, &info_rmndr::fordblks );
+    chk.calc( &mallinfo2::keepcost, &info_rmndr::keepcost );
     if ( chk.step_time )
     {
         step_idx = step_idx < 19 ? step_idx + 1 : 0;
