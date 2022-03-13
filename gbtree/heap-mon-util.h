@@ -1,6 +1,10 @@
 //
-// This include provides the declaration for a class that providing an
-//   interface for monitoring heap memory.
+// This include provides the declaration for a class that provides an
+//   interface for monitoring heap memory.  If this file is included,
+//   it is assumed that the heap monitoring capability is needed and
+//   will be used.  If it is not needed for a particular build, then
+//   an external decision must be made to inhibit this file from being
+//   included.
 
 #include <malloc.h>
 #include <chrono>
@@ -40,7 +44,7 @@ struct info_rmndr {
 
 using namespace std;
 
-const int64_t min_usec_intvl = 25000;  // minimum read interval
+const int64_t min_usec_intvl = 100000;  // minimum read interval
 const int64_t usec_per_minute = 1000000 * 60;  // microseconds per minute
 const int64_t usec_per_3sec = 1000000 * 3;  // microseconds per 3 seconds
 const uint16_t v_wid = 16;

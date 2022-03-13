@@ -135,7 +135,8 @@ class ncursio {
     int16_t db_wait4scroll();
     void dbg_refresh();
 
-    int16_t show_timeout();
+    void show_timeout();
+    void update_heap_mon_win();
 
 public:
     bool quit_cmd_issued;

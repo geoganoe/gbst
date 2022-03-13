@@ -825,11 +825,12 @@ int16_t ncursio::mnloop( int16_t n_iterations )
             if ( --iter_left == 0 ) run_loop = false;
         }
         heap_mn.get_info();
+        if ( heap_mn.is_new_info() ) update_heap_mon_win();
     }
     return chr_in;
 }
 
-int16_t ncursio::show_timeout()
+void ncursio::show_timeout()
 {
     string tmout_str = "timout: ";
     tmout_str += to_string( inp_tm_out_ms );
@@ -839,7 +840,38 @@ int16_t ncursio::show_timeout()
     mvwaddstr( bt_main, mn_tmout_row, mn_tmout_col, tmout_str.c_str() );
     wrefresh( bt_main );
     mnloop( 1 );
-    return 0;
+}
+
+void ncursio::update_heap_mon_win()
+{
+    if ( heap_mn.is_new_info() )
+    {
+        // GGG - Output new heap monitor info to curses screen
+        ostringstream hpvals;
+        heap_mn.disp_values( hpvals );
+        mvwaddstr( hpmn_vals, 0, 0, hpvals.str().c_str() );
+        wrefresh( hpmn_vals );
+        // GGG - Output current String stream sizes info to curses screen
+        hpvals.str( "" );
+        hpvals <<
+          setw( v_wid ) <<  infstrm.str().size() <<
+          setw( v_wid ) <<  infstrm.str().capacity() << endl <<
+          setw( v_wid ) <<  grfstrm.str().size() <<
+          setw( v_wid ) <<  grfstrm.str().capacity() << endl <<
+          setw( v_wid ) <<   dbstrm.str().size() <<
+          setw( v_wid ) <<   dbstrm.str().capacity() << endl <<
+          setw( v_wid ) <<   erstrm.str().size() <<
+          setw( v_wid ) <<   erstrm.str().capacity() << endl <<
+          setw( v_wid ) << bsvistrm.str().size() <<
+          setw( v_wid ) << bsvistrm.str().capacity() << endl <<
+          setw( v_wid ) << infstrm.str().size() + grfstrm.str().size() +
+          dbstrm.str().size() + erstrm.str().size() + bsvistrm.str().size() <<
+          setw( v_wid ) << infstrm.str().capacity() + grfstrm.str().capacity() +
+          dbstrm.str().capacity() + erstrm.str().capacity() +
+          bsvistrm.str().capacity();
+        mvwaddstr( sstrm_vals, 2, 0, hpvals.str().c_str() );
+        wrefresh( sstrm_vals );
+    }
 }
 
 int16_t ncursio::manage_main_win()
@@ -1015,34 +1047,6 @@ int16_t ncursio::manage_debug_win()
     //   'p'aused until the 'c'ontinue command is sent.
     static int dbstrm_pos = 0;
     static int16_t lines_left = 0;
-    if ( heap_mn.is_new_info() )
-    {
-        // GGG - Output new heap monitor info to curses screen
-        ostringstream hpvals;
-        heap_mn.disp_values( hpvals );
-        mvwaddstr( hpmn_vals, 0, 0, hpvals.str().c_str() );
-        wrefresh( hpmn_vals );
-        // GGG - Output current String stream sizes info to curses screen
-        hpvals.str( "" );
-        hpvals <<
-          setw( v_wid ) <<  infstrm.str().size() <<
-          setw( v_wid ) <<  infstrm.str().capacity() << endl <<
-          setw( v_wid ) <<  grfstrm.str().size() <<
-          setw( v_wid ) <<  grfstrm.str().capacity() << endl <<
-          setw( v_wid ) <<   dbstrm.str().size() <<
-          setw( v_wid ) <<   dbstrm.str().capacity() << endl <<
-          setw( v_wid ) <<   erstrm.str().size() <<
-          setw( v_wid ) <<   erstrm.str().capacity() << endl <<
-          setw( v_wid ) << bsvistrm.str().size() <<
-          setw( v_wid ) << bsvistrm.str().capacity() << endl <<
-          setw( v_wid ) << infstrm.str().size() + grfstrm.str().size() +
-          dbstrm.str().size() + erstrm.str().size() + bsvistrm.str().size() <<
-          setw( v_wid ) << infstrm.str().capacity() + grfstrm.str().capacity() +
-          dbstrm.str().capacity() + erstrm.str().capacity() +
-          bsvistrm.str().capacity();
-        mvwaddstr( sstrm_vals, 2, 0, hpvals.str().c_str() );
-        wrefresh( sstrm_vals );
-    }
     int new_dbstrm_count = dbstrm.str().size() - dbstrm_pos;
     if ( new_dbstrm_count < 10 ) return new_dbstrm_count;
     int16_t dby __attribute__(( unused )), dbx;
