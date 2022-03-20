@@ -73,7 +73,7 @@ ostringstream erstrm;
 #ifdef INFOdisplay    // Declarations for development only
 // This is the base search variable info save stream it needs to be active
 //   when the macro INFOdisplay is defined
-ostringstream bsvistrm;
+stringstream bsvistrm;
 ostream& errs = bsvistrm;
 ostream& iout = bsvistrm;
 

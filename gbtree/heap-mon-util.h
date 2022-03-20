@@ -8,7 +8,7 @@
 
 #include <malloc.h>
 #include <chrono>
-#include <ostream>
+#include <sstream>
 
 #ifndef HEAP_MON_CLASS_type_h
 #define HEAP_MON_CLASS_type_h
@@ -73,9 +73,9 @@ class heap_mon_class
 public:
     heap_mon_class();
     void get_info();
-    void disp_desc( ostream& ostrm );
-    void disp_values( ostream& ostrm );
-    void disp_info( ostream& ostrm );
+    string disp_desc();
+    string disp_values();
+    string disp_info();
     bool is_new_info();
 };
 

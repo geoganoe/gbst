@@ -78,9 +78,7 @@ void atexit_handl_1()
     cout << "at exit handler number 1." << endl;
     cout << "Heap info at handler number 1." << endl;
     while ( !heap_mn.is_new_info() ) heap_mn.get_info();
-    ostringstream idisp;
-    heap_mn.disp_info( idisp );
-    cout << idisp.str() << endl;
+    cout << heap_mn.disp_info() << endl;
 }
 bool in_main = false;
 
@@ -225,9 +223,7 @@ int main(int argc, char* argv[])
           " and will use an alternate approach." << endl;
 #endif
         heap_mn.get_info();
-        ostringstream idisp;
-        heap_mn.disp_info( idisp );
-        cout << idisp.str() << endl;
+        cout << heap_mn.disp_info() << endl;
         cout << "File " << file2process << " is open." << endl;
     }
 #ifdef INdevel
@@ -369,9 +365,7 @@ int main(int argc, char* argv[])
     {
             // pre-ncurses
         while ( !heap_mn.is_new_info() ) heap_mn.get_info();
-        ostringstream idisp;
-        heap_mn.disp_info( idisp );
-        cout << idisp.str() << endl;
+        cout << heap_mn.disp_info() << endl;
         cout << endl <<
           "This is the fo-string-test program designed to test " << endl <<
           "the name string management for the file organizer." << endl;
@@ -392,18 +386,24 @@ int main(int argc, char* argv[])
     stime << "temp/fo_info_" << put_time(ptm,"%F_%H-%M-%S") << ".txt";
     ofstream f4info;
     f4info.open(stime.str());
-    if ( pflg.track_base_search_vars && bsvistrm.tellp() > 0 ) f4info <<
-      "Saved Base Search variable monitor info is as follows:" << endl <<
-      bsvistrm.str() << endl;
+    if ( pflg.track_base_search_vars && bsvistrm.tellp() > 0 )
+    {
+        f4info << "Saved Base Search variable monitor info is as follows:" <<
+          endl;
+        char svbuf[ 40000 ];
+        if ( bsvistrm.tellg() > 0 ) bsvistrm.seekg( 0 );
+        int nch;
+        while ( (nch = bsvistrm.readsome( svbuf, 40000 ) ) > 0 )
+          f4info.write( svbuf, nch );
+        f4info << endl;
+    }
     // Temporary view of the math processing
     //   if ( grfstrm.str().size() > 5 ) f4info << grfstrm.str() << endl;
 #endif // #ifdef INFOdisplay
     cout << grfstrm.str() << endl;
     cout << "Heap info at end of fo-string-test program." << endl;
     while ( !heap_mn.is_new_info() ) heap_mn.get_info();
-    ostringstream idisp;
-    heap_mn.disp_info( idisp );
-    cout << idisp.str() << endl;
+    cout << heap_mn.disp_info() << endl;
     cout << "ending program and returning to the terminal prompt after"
       " running all destructors and cleaning memory." << endl;
     in_main = false;
@@ -435,9 +435,7 @@ int run_test_set( ifstream& f2proc, int start_str_num )
         //          1         2         3         4         5         6
         // 1234567890123456789012345678901234567890123456789012345678901234
         while ( !heap_mn.is_new_info() ) heap_mn.get_info();
-        ostringstream idisp;
-        heap_mn.disp_info( idisp );
-        cout << idisp.str() << endl;
+        cout << heap_mn.disp_info() << endl;
         int a = 4;
         string fspt_text =
           "The next available element in the fo_string_ptr array is ";
@@ -627,9 +625,7 @@ int run_test_set( ifstream& f2proc, int start_str_num )
           " total records available." << endl; //  <<
         cout << drsiz.str();    // pre-ncurses
         while ( !heap_mn.is_new_info() ) heap_mn.get_info();
-        idisp.str( "" );
-        heap_mn.disp_info( idisp );
-        cout << idisp.str() << endl;
+        cout << heap_mn.disp_info() << endl;
     }
     if ( pflg.test_base_search_vars )
     {
@@ -806,9 +802,7 @@ int run_test_set( ifstream& f2proc, int start_str_num )
         iout << " }." << endl;
         gout << endl << "Heap info at end of run_test_set() function." << endl;
         while ( !heap_mn.is_new_info() ) heap_mn.get_info();
-        ostringstream idisp;
-        heap_mn.disp_info( idisp );
-        gout << idisp.str() << endl;
+        gout << heap_mn.disp_info() << endl;
     }
     utf8_rcrd_type tmp_rcrd;
     if ( pflg.show_name_store_strings )

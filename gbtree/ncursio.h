@@ -136,6 +136,7 @@ class ncursio {
     void dbg_refresh();
 
     void show_timeout();
+    string get_stream_info();
     void update_heap_mon_win();
 
 public:

@@ -150,8 +150,9 @@ void heap_mon_class::get_info()
     new_info = true;
 }
 
-void heap_mon_class::disp_desc( ostream& ostrm )
+string heap_mon_class::disp_desc()
 {
+    ostringstream ostrm;
     ostrm << "    Heap monitor info display" << endl <<
       "Normal heap space allocated (bytes)" << endl <<  //    arena
       "Number of free chunks"               << endl <<  //    ordblks
@@ -162,10 +163,12 @@ void heap_mon_class::disp_desc( ostream& ostrm )
       "Total allocated space (bytes)"       << endl <<  //    uordblks
       "Total free space (bytes)"            << endl <<  //    fordblks
       "Top-most, releasable space (bytes)";             //    keepcost
+    return ostrm.str();
 }
 
-void heap_mon_class::disp_values( ostream& ostrm )
+string heap_mon_class::disp_values()
 {
+    ostringstream ostrm;
     int tst = tst_idx;
     ostrm << "      Run time µsec = " << run_usec <<
       ", tst index = " << tst << endl << "  Recent Minimum          latest"
@@ -199,10 +202,12 @@ void heap_mon_class::disp_values( ostream& ostrm )
       mi.keepcost << setw( v_wid ) << minute_avg.keepcost << setw( v_wid ) <<
       maximums[ tst ].keepcost;
     new_info = false;
+    return ostrm.str();
 }
 
-void heap_mon_class::disp_info( ostream& ostrm )
+string heap_mon_class::disp_info()
 {
+    ostringstream ostrm;
     int tst = 0;
     ostrm << "                         Run time µsec = " << run_usec << endl <<
       setw( 35 ) << "    Heap monitor info display" << "  Recent Minimum"
@@ -244,6 +249,7 @@ void heap_mon_class::disp_info( ostream& ostrm )
       setw( v_wid ) << minute_avg.keepcost << setw( v_wid ) <<
       maximums[ tst ].keepcost;
     new_info = false;
+    return ostrm.str();
 }
 
 bool heap_mon_class::is_new_info()

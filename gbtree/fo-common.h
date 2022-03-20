@@ -82,7 +82,7 @@ extern ostringstream erstrm;
 #ifdef INFOdisplay    // Declarations for development only
 // This is the base search variable info save stream it needs to be active
 //   when the info window display or the info output is desired.
-extern ostringstream bsvistrm;
+extern stringstream bsvistrm;
 #endif // #ifdef INFOdisplay
 
 extern ostream& iout;

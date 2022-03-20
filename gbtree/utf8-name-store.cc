@@ -58,9 +58,7 @@ void atexit_handl_5()
     cout << "at exit handler number 5." << endl;
     cout << "Heap info at handler number 5." << endl;
     while ( !heap_mn.is_new_info() ) heap_mn.get_info();
-    ostringstream idisp;
-    heap_mn.disp_info( idisp );
-    cout << idisp.str() << endl;
+    cout << heap_mn.disp_info() << endl;
 }
 #endif  //    #ifdef DOatexit
 

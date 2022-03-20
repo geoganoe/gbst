@@ -188,9 +188,7 @@ void atexit_handl_9()
     cout << "at exit handler number 9." << endl;
     cout << "Heap info at handler number 9." << endl;
     while ( !heap_mn.is_new_info() ) heap_mn.get_info();
-    ostringstream idisp;
-    heap_mn.disp_info( idisp );
-    cout << idisp.str() << endl;
+    cout << heap_mn.disp_info() << endl;
 }
 
 const int16_t main_nlines = 5;
@@ -632,39 +630,18 @@ ncursio::ncursio()
     prefresh( bt_gr_pad, 0, 0, grds_sty, grds_stx, grds_eny, grds_enx );
     //
     // Output the heap monitoring description display
-    ostringstream hpdesc;
-    heap_mn.disp_desc( hpdesc );
-    mvwaddstr( hpmn_desc, 1, 0, hpdesc.str().c_str() );
+    mvwaddstr( hpmn_desc, 1, 0, heap_mn.disp_desc().c_str() );
     wrefresh( hpmn_desc );
     // GGG - Output new heap monitor info to curses screen
-    ostringstream hpvals;
-    heap_mn.disp_values( hpvals );
-    mvwaddstr( hpmn_vals, 0, 0, hpvals.str().c_str() );
+    mvwaddstr( hpmn_vals, 0, 0, heap_mn.disp_values().c_str() );
     wrefresh( hpmn_vals );
     // Output the String stream sizes description display
     mvwaddstr( sstrm_desc, 0, 0, "String stream\n    sizes\n  infstrm\n  "
       "grfstrm\n  dbstrm\n  erstrm\n  bsvistrm\n  Total bytes" );
     wrefresh( sstrm_desc );
     // GGG - Output current String stream sizes info to curses screen
-    hpvals.str( "" );
-    hpvals <<
-      setw( v_wid ) <<  infstrm.str().size() <<
-      setw( v_wid ) <<  infstrm.str().capacity() << endl <<
-      setw( v_wid ) <<  grfstrm.str().size() <<
-      setw( v_wid ) <<  grfstrm.str().capacity() << endl <<
-      setw( v_wid ) <<   dbstrm.str().size() <<
-      setw( v_wid ) <<   dbstrm.str().capacity() << endl <<
-      setw( v_wid ) <<   erstrm.str().size() <<
-      setw( v_wid ) <<   erstrm.str().capacity() << endl <<
-      setw( v_wid ) << bsvistrm.str().size() <<
-      setw( v_wid ) << bsvistrm.str().capacity() << endl <<
-      setw( v_wid ) << infstrm.str().size() + grfstrm.str().size() +
-      dbstrm.str().size() + erstrm.str().size() + bsvistrm.str().size() <<
-      setw( v_wid ) << infstrm.str().capacity() + grfstrm.str().capacity() +
-      dbstrm.str().capacity() + erstrm.str().capacity() +
-      bsvistrm.str().capacity();
-    mvwaddstr( sstrm_vals, 2, 0, hpvals.str().c_str() );
-    mvwaddstr( sstrm_vals, 1, 0, "          Sizes       Capacities" );
+    mvwaddstr( sstrm_vals, 2, 0, get_stream_info().c_str() );
+    mvwaddstr( sstrm_vals, 1, 0, "          tellg|p         tellp" );
     wrefresh( sstrm_vals );
     gr_pd_mnrw = 0;
     gr_pd_mncl = 0;
@@ -688,9 +665,7 @@ ncursio::~ncursio()
         void sh_heap()
         {
             while ( !heap_mn.is_new_info() ) heap_mn.get_info();
-            ostringstream idisp;
-            heap_mn.disp_info( idisp );
-            gout << idisp.str() << endl;
+            gout << heap_mn.disp_info() << endl;
         }
     } d;
     if ( isendwin() == false )
@@ -842,34 +817,36 @@ void ncursio::show_timeout()
     mnloop( 1 );
 }
 
+string ncursio::get_stream_info()
+{
+    ostringstream hpvals;
+    hpvals <<
+      setw( v_wid ) <<  infstrm.tellp() <<
+      setw( v_wid ) <<  infstrm.tellp() << endl <<
+      setw( v_wid ) <<  grfstrm.tellp() <<
+      setw( v_wid ) <<  grfstrm.tellp() << endl <<
+      setw( v_wid ) <<   dbstrm.tellp() <<
+      setw( v_wid ) <<   dbstrm.tellp() << endl <<
+      setw( v_wid ) <<   erstrm.tellp() <<
+      setw( v_wid ) <<   erstrm.tellp() << endl <<
+      setw( v_wid ) << bsvistrm.tellg() <<
+      setw( v_wid ) << bsvistrm.tellp() << endl <<
+      setw( v_wid ) << infstrm.tellp() + grfstrm.tellp() + dbstrm.tellp() +
+        erstrm.tellp() + bsvistrm.tellg() <<
+      setw( v_wid ) << infstrm.tellp() + grfstrm.tellp() + dbstrm.tellp() +
+        erstrm.tellp() + bsvistrm.tellp();
+    return hpvals.str();
+}
+
 void ncursio::update_heap_mon_win()
 {
     if ( heap_mn.is_new_info() )
     {
         // GGG - Output new heap monitor info to curses screen
-        ostringstream hpvals;
-        heap_mn.disp_values( hpvals );
-        mvwaddstr( hpmn_vals, 0, 0, hpvals.str().c_str() );
+        mvwaddstr( hpmn_vals, 0, 0, heap_mn.disp_values().c_str() );
         wrefresh( hpmn_vals );
         // GGG - Output current String stream sizes info to curses screen
-        hpvals.str( "" );
-        hpvals <<
-          setw( v_wid ) <<  infstrm.str().size() <<
-          setw( v_wid ) <<  infstrm.str().capacity() << endl <<
-          setw( v_wid ) <<  grfstrm.str().size() <<
-          setw( v_wid ) <<  grfstrm.str().capacity() << endl <<
-          setw( v_wid ) <<   dbstrm.str().size() <<
-          setw( v_wid ) <<   dbstrm.str().capacity() << endl <<
-          setw( v_wid ) <<   erstrm.str().size() <<
-          setw( v_wid ) <<   erstrm.str().capacity() << endl <<
-          setw( v_wid ) << bsvistrm.str().size() <<
-          setw( v_wid ) << bsvistrm.str().capacity() << endl <<
-          setw( v_wid ) << infstrm.str().size() + grfstrm.str().size() +
-          dbstrm.str().size() + erstrm.str().size() + bsvistrm.str().size() <<
-          setw( v_wid ) << infstrm.str().capacity() + grfstrm.str().capacity() +
-          dbstrm.str().capacity() + erstrm.str().capacity() +
-          bsvistrm.str().capacity();
-        mvwaddstr( sstrm_vals, 2, 0, hpvals.str().c_str() );
+        mvwaddstr( sstrm_vals, 2, 0, get_stream_info().c_str() );
         wrefresh( sstrm_vals );
     }
 }
@@ -890,10 +867,13 @@ int16_t ncursio::manage_info_win()
     mnloop( 1 );
     //  wmove( bt_info, 0, 0 );
 #ifdef INFOdisplay
-    istringstream info_relay( bsvistrm.str().substr( infostrm_pos ) );
-    infostrm_pos = bsvistrm.str().size();
-    for ( string nxt_line; getline( info_relay, nxt_line ); )
+    //    istringstream info_relay( bsvistrm.str().substr( infostrm_pos ) );
+    //    infostrm_pos = bsvistrm.str().size();
+    //    for ( string nxt_line; getline( bsvistrm, nxt_line ); )
+    while ( bsvistrm.tellp() - bsvistrm.tellg() > 10 )
     {
+        string nxt_line;
+        getline( bsvistrm, nxt_line );
         // Read lines from the base search variable info stream and display
         //   them in the info window after trimming any characters that
         //   exceed the number of columns allocated to the info window.
