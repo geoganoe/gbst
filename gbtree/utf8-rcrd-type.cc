@@ -65,9 +65,9 @@ void atexit_handl_4()
     cout << "at exit handler number 4." << endl;
 }
 
+stringstream dbstrm;
 ostringstream infstrm;
 ostringstream grfstrm;
-ostringstream dbstrm;
 ostringstream erstrm;
 
 #ifdef INFOdisplay    // Declarations for development only

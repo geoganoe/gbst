@@ -74,9 +74,9 @@ struct flag_set {
 };
 
 extern flag_set pflg;
+extern stringstream dbstrm;
 extern ostringstream infstrm;
 extern ostringstream grfstrm;
-extern ostringstream dbstrm;
 extern ostringstream erstrm;
 
 #ifdef INFOdisplay    // Declarations for development only

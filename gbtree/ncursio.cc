@@ -831,7 +831,7 @@ string ncursio::get_stream_info()
       setw( v_wid ) <<   erstrm.tellp() << endl <<
       setw( v_wid ) << bsvistrm.tellg() <<
       setw( v_wid ) << bsvistrm.tellp() << endl <<
-      setw( v_wid ) << infstrm.tellp() + grfstrm.tellp() + dbstrm.tellp() +
+      setw( v_wid ) << infstrm.tellp() + grfstrm.tellp() + dbstrm.tellg() +
         erstrm.tellp() + bsvistrm.tellg() <<
       setw( v_wid ) << infstrm.tellp() + grfstrm.tellp() + dbstrm.tellp() +
         erstrm.tellp() + bsvistrm.tellp();
@@ -1025,10 +1025,9 @@ int16_t ncursio::manage_debug_win()
     //   debug window.  That scroll can be slowed down by the 's'lower
     //   command, or speeded up by the 'f'aster command.  It can also be
     //   'p'aused until the 'c'ontinue command is sent.
-    static int dbstrm_pos = 0;
     static int16_t lines_left = 0;
-    int new_dbstrm_count = dbstrm.str().size() - dbstrm_pos;
-    if ( new_dbstrm_count < 10 ) return new_dbstrm_count;
+    int new_dbstrm_count = dbstrm.tellp() - dbstrm.tellg();
+    if ( new_dbstrm_count <= 10 ) return new_dbstrm_count;
     int16_t dby __attribute__(( unused )), dbx;
     // Sending debug lines to graph pad when defined
 //  #define DBG_TO_GRAPH_PAD
@@ -1052,11 +1051,11 @@ int16_t ncursio::manage_debug_win()
     mvwaddstr( bt_main, 4, 0, "In manage debug window:                     " );
     wrefresh( bt_main );
     mnloop( 1 );
-    istringstream dbg_relay( dbstrm.str().substr( dbstrm_pos ) );
-    if ( dbg_relay.str().size() > 10 && ( dbstrm_pos = dbstrm.str().size() ) )
-      for ( string nxt_line; getline( dbg_relay, nxt_line ); )
+    while ( ( new_dbstrm_count = dbstrm.tellp() - dbstrm.tellg() ) > 10 )
     {
-        // Read and process lines from relay buffer stream
+        string nxt_line;
+        getline( dbstrm, nxt_line );
+        // Read and process lines from debug buffer stream
         //
         // Sending debug lines to graph pad when defined. See above
 #ifdef DBG_TO_GRAPH_PAD
@@ -1211,7 +1210,7 @@ int16_t ncursio::manage_debug_win()
     wrefresh( bt_main );
     in_manage_debug_win = false;
     mnloop( 1 );
-    return 0;
+    return new_dbstrm_count;
     // this is for when the debug window is full and not able to scroll
     // mvwaddstr( bt_main,5,0,"Waiting on debug window:  cmd 'd' or 'D' " );
 }
