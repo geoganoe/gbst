@@ -48,7 +48,7 @@ getout () {
 # The libfoutil.a library, if it exists, needs to be deleted as it can
 #   cause a number of confusing build error messages when building a
 #   checked out commit that is different enough from the previous build.
-if [ -d "dir" ]; then
+if [ -d "lib" ]; then
     if [ -f lib/libbtutil.a ]; then
         rm lib/libbtutil.a
         echo "file lib/libbtutil.a deleted and will be re-built."
