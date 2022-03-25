@@ -45,10 +45,21 @@ getout () {
     exit 1
 }
 
-# The libfoutil.a library needs to be deleted as it can cause a number of
-#   confusing build error messages when building a checked out commit
-#   that is different enough from the previous build.
-rm lib/libbtutil.a
+# The libfoutil.a library, if it exists, needs to be deleted as it can
+#   cause a number of confusing build error messages when building a
+#   checked out commit that is different enough from the previous build.
+if [ -d "dir" ]; then
+    if [ -f lib/libbtutil.a ]; then
+        rm lib/libbtutil.a
+        echo "file lib/libbtutil.a deleted and will be re-built."
+    else
+        echo "file lib/libbtutil.a was not found and will be built."
+    fi
+else
+    echo -n "The lib folder did not exist but will be created, then "
+    echo "the library lib/libbtutil.a will be built."
+    mkdir lib
+fi
 
 cd uni-utils
 echo "Running compiler g++ -O2 -Wall -std=c++17 -c hex-symbol.cc in $PWD"
