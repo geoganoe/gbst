@@ -61,47 +61,40 @@ else
     mkdir lib
 fi
 
+mod_compile () {
+    onams=""
+    for fname in $flist; do
+        echo "Running compiler g++ -O2 -Wall -std=c++17 -c $fname.cc in $PWD"
+        g++ -O2 -Wall -std=c++17 -c $fname.cc || getout
+        if [ ${#onams} -gt 1 ]; then
+            onams=$onams" $fname.o"
+        else
+            onams="$fname.o"
+        fi
+        if [ ${#onams} -gt 32 ]; then
+            echo "Updating the library ar -Prs ../lib/libbtutil.a $onams in $PWD"
+            ar -Prs ../lib/libbtutil.a $onams
+            onams=""
+        fi
+    done
+    if [ ${#onams} -gt 1 ]; then
+        echo "Updating the library ar -Prs ../lib/libbtutil.a $onams in $PWD"
+        ar -Prs ../lib/libbtutil.a $onams
+        onams=""
+    fi
+}
+
 cd uni-utils
-echo "Running compiler g++ -O2 -Wall -std=c++17 -c hex-symbol.cc in $PWD"
-g++ -O2 -Wall -std=c++17 -c hex-symbol.cc || getout
-echo "Running compiler g++ -O2 -Wall -std=c++17 -c uni-utils.cc in $PWD"
-g++ -O2 -Wall -std=c++17 -c uni-utils.cc || getout
-echo "Updating the library ar -Prs ../lib/libbtutil.a hex-symbol.o uni-utils.o in $PWD"
-ar -Prs ../lib/libbtutil.a hex-symbol.o uni-utils.o
+flist="hex-symbol uni-utils"
+mod_compile
 
 cd $baseFldr/gbtree
-echo "Running compiler g++ -O2 -Wall -std=c++17 -c fo-utils.cc in $PWD"
-g++ -O2 -Wall -std=c++17 -c fo-utils.cc || getout
-echo "Running compiler g++ -O2 -Wall -std=c++17 -c gbtree.cc in $PWD"
-g++ -O2 -Wall -std=c++17 -c gbtree.cc || getout
-echo "Running compiler g++ -O2 -Wall -std=c++17 -c utf8-name-store.cc in $PWD"
-g++ -O2 -Wall -std=c++17 -c utf8-name-store.cc || getout
-echo "Running compiler g++ -O2 -Wall -std=c++17 -c hash-rcrd-type.cc in $PWD"
-g++ -O2 -Wall -std=c++17 -c hash-rcrd-type.cc || getout
-echo "Running compiler g++ -O2 -Wall -std=c++17 -c utf8-rcrd-type.cc in $PWD"
-g++ -O2 -Wall -std=c++17 -c utf8-rcrd-type.cc || getout
-echo "Running compiler g++ -O2 -Wall -std=c++17 -c gbst-iface.cc in $PWD"
-g++ -O2 -Wall -std=c++17 -c gbst-iface.cc || getout
-echo "Running compiler g++ -O2 -Wall -std=c++17 -c ncursio.cc in $PWD"
-g++ -O2 -Wall -std=c++17 -c ncursio.cc || getout
-echo "Running compiler g++ -O2 -Wall -std=c++17 -c btree-graph-class.cc in $PWD"
-g++ -O2 -Wall -std=c++17 -c btree-graph-class.cc || getout
-echo "Running compiler g++ -O2 -Wall -std=c++17 -c heap-mon-util.cc in $PWD"
-g++ -O2 -Wall -std=c++17 -c heap-mon-util.cc || getout
+flist="gbst-iface hash-rcrd-type utf8-rcrd-type gbtree utf8-name-store fo-utils"
+flist=$flist" ncursio btree-graph-class heap-mon-util"
+mod_compile
 
-echo "Updating library ar -Prs ../lib/libbtutil.a gbst-iface.o utf8-rcrd-type.o"
-ar -Prs ../lib/libbtutil.a gbst-iface.o utf8-rcrd-type.o
-echo "Updating library ar -Prs ../lib/libbtutil.a gbtree.o utf8-name-store.o"
-ar -Prs ../lib/libbtutil.a gbtree.o utf8-name-store.o
-echo "Updating library ar -Prs ../lib/libbtutil.a heap-mon-util.o"
-ar -Prs ../lib/libbtutil.a heap-mon-util.o
-echo "Updating library ar -Prs ../lib/libbtutil.a hash-rcrd-type.o fo-utils.o"
-ar -Prs ../lib/libbtutil.a hash-rcrd-type.o fo-utils.o
-echo "Updating library ar -Prs ../lib/libbtutil.a ncursio.o btree-graph-class.o"
-ar -Prs ../lib/libbtutil.a ncursio.o btree-graph-class.o
-ar -Ptv ../lib/libbtutil.a
-
-echo "Running compiler g++ -std=c++17 -o $baseFldr/tstr tstr.cc -L ../../lib -lbtutil in $PWD"
+echo "Running compiler in $PWD to build executable:"
+echo "g++ -O2 -Wall -std=c++17 -o gbst-test gbst-test.cc -L ../lib -lbtutil -lncursesw -lcrypto"
 g++ -O2 -Wall -std=c++17 -o gbst-test gbst-test.cc -L ../lib -lbtutil -lncursesw -lcrypto
 
 cd $baseFldr
