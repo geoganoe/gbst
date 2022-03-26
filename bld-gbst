@@ -64,8 +64,9 @@ fi
 mod_compile () {
     onams=""
     for fname in $flist; do
-        echo "Running compiler g++ -O2 -Wall -std=c++17 -c $fname.cc in $PWD"
-        g++ -O2 -Wall -std=c++17 -c $fname.cc || getout
+        cmpcmd="g++ -O2 -Wall -std=c++17 -c $fname.cc"
+        echo "Running compiler $cmpcmd in $PWD"
+        $cmpcmd || getout
         if [ ${#onams} -gt 1 ]; then
             onams=$onams" $fname.o"
         else
