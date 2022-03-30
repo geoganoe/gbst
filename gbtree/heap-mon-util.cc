@@ -257,6 +257,9 @@ bool heap_mon_class::is_new_info()
     return new_info;
 }
 
+//
+// The following is a copy of an example use of the mallinfo2 struct from
+//   the man page, and is here only as a reference.
 //  #define HEAP_MON_Test
 #ifdef HEAP_MON_Test  // Test program for the heap monitor class
 

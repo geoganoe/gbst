@@ -25,7 +25,7 @@
 //   that has been found in the target file system types and determine
 //   the encoding type and save it in the null terminated name string
 //   table in a way that the original string can be recovered when
-//   needed.  The string pointer table record associated with the
+//   needed.  The utf8_rcrd_type record associated with the
 //   string will provide the information needed to assist in assuring
 //   the capability exists and can be implemented.
 //
@@ -177,15 +177,17 @@ struct significant_collation_chars
     //   this character set, I learned that if the first weight in the
     //   listing starts with " ; [*hhhh.hhhh.hhhh]" then the primary weight
     //   is ignorable, and thus does not factor into the primary collation
-    //   order.  Thus the [us] control character is not valid, but I needed
-    //   something there that was lower than the '$' character which turns
-    //   out to be the currency sign '¤', code point 0x00a4.  However, that
-    //   character doesn't fit in the ASCII character array space that the
-    //   [us] character uses.  So, until I decide on a solution that will
-    //   work for the long term, I will just substitute the currency sign
-    //   into the scc_set location one during the gbst_interface_type
-    //   class constructor execution which is only done once near the
-    //   beginning of program execution.
+    //   order.  Thus the [us] control character is not valid, so the
+    //   solution that I have chosen consists of the following sets.  The
+    //   ascii_set index 0 of 0x01 does not work as a primary weight
+    //   character, but if it stands alone with no other character in the
+    //   string, it is less than any other string and can thus be used as
+    //   the ultimate base_search_str_min value.  Since the vast majority
+    //   of name strings that I will encounter are ASCII strings, the
+    //   selected collation character set is heavily weighted to them, and
+    //   the utf_16_set contains a scattering of symbols that are
+    //   relatively dispersed in their weighting through the range that
+    //   will potentially be encountered.
     char ascii_set[ scc_size_ascii ] {
        0x01, '$', '0', '1', '2', '3', '4', '5', '6', '7',
         '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
@@ -264,8 +266,8 @@ const fit_opts fit_wht_trim { 0, 0, 0, 0, 0, 0, 1 };
 
 const int bar27 = 0x08000000;
 // const int max_nmst_id = 0x07fffbff;
-const int bar23 = 0x0800000;
-const int max_nmst_id = 0x07ffbff;  // 8,388,608
+const int bar23 = 0x0800000;  // 8,388,608
+const int max_nmst_id = 0x07ffbff;  // 8,387,583
 const uint16_t num_max = 1020;
 
 typedef vector<uint16_t> index_vec;
@@ -373,8 +375,12 @@ bool test_scc_set_validity();
 // This array of strings is a ducet compatible in order list of the strings
 //   evenly spaced over the file of unique sorted name strings from a recent
 //   backup USB drive of the Dell 5520 Precision laptop computer.
+// These sets of low level [1 - n] base search strings are only examples.
+//   The actual set used is currently defined in the utf8-rcrd-type module,
+//   and will ultimately be read from the data base file that uses the
+//   utf8_rcrd_type class.
 //
-//  0 'control character us'
+//  0 $
 //  1 749c    rlll4
 //  2 arrayp  rll3
 //  3 buildj  rllr4

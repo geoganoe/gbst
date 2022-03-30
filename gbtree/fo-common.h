@@ -92,7 +92,7 @@ extern ostream& dbgs;
 
 #ifdef INdevel  // Declarations/definitions/code for development only
 struct debug_flags {
-    // The unneeded debug flags are commented out until they are needed.
+    // The debug flag comments to be filled in as the purpose is assigned.
     uint32_t a0 : 1;  // gbtree traverse debug flag
     uint32_t a1 : 1;  // test base search variables debug flag
     uint32_t a2 : 1;  // Name string conversion and validation dbg flag

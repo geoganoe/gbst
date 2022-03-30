@@ -4,10 +4,10 @@
 //   implementation that can handle any type of data easily in a
 //   derived class with little extra work.  The first two derived
 //   classes will be for 1 > a set of binary byte arrays, and 2 > a
-//   set of UTF-8 compatible strings.  It is possible that this
-//   should be a template, but I am not comfortable with defining
-//   templates, so I want to try this first.  The main enhancement of
-//   this effort is the use of a base sorting item for each node in
+//   set of UTF-8 compatible strings.  Derived class #1, hash_rcrd_type,
+//   is a template class, which will be instantiated as SHA1 and MD5
+//   derived classes, and #2 is utf8_rcrd_type.  The main enhancement
+//   of this effort is the use of a base sorting item for each node in
 //   the set which is defined to maintain balance in the tree.  The
 //   base sorting item must be a potential member of the data set
 //   that is being sorted, and will be the determining factor for

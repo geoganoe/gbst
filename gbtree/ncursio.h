@@ -1,6 +1,6 @@
 //
 // This provides the declaration for a class to be used as the gateway
-//   to using ncurses I/O for the file organizer application.
+//   to using ncurses I/O for the gbst-test application.
 //   Initially, it will be used to finish the btree design and
 //   implementation by providing a btree graph display that is
 //   supported by the various information needed to solve the current

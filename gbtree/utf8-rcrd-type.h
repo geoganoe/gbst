@@ -92,8 +92,9 @@ class utf8_rcrd_type : public gbtree
     // GGG - Note that the following index has a max value of 255
     uint8_t srchstr_first_ch_idx;
     // Set of indexes into the scc_set array that can provide an addition
-    //   of up to five UTF-8 characters to the base_search_str.  The first
-    //   element is the number of characters to be added.
+    //   of up to six UTF-8 characters to the base_search_str.  The number
+    //   of characters to be added is returned to the base class in the
+    //   set_base_srch_var() method (to be implemented soon).
     b2s6 srchstr_node_add[ 6 ];
     //
     // GGG - Consider moving the record data from gbst_interface_type
@@ -105,19 +106,14 @@ class utf8_rcrd_type : public gbtree
     static vector<name_string_hold> nmst_hld;
     static vector<spr_bss_state> bss_state_vec;
     static vector<utf8_rcrd_type> name_string_rcrds;
-    static utf8_name_store string_table;
-    // May not be needed   static int nxt_tbl_index;
     //
-    // Try this to use a reference instead of the pointer above
-    // Doesn't work, but there should be a way
-    //   static gbst_interface_type& sp_tbl_ref;
-    // GGG - These five static declarations are meant to be used as the
-    //   Values for the lowest, highest, and current base_search_str at the
-    //   current node.  They need to be continually updated by the search
-    //   code as it searches down into deeper levels.  The _level variables
-    //   indicate the level that the related base_search_str is pinned to.
-    // Don't care about this   static int base_search_str_min_level;
-    // Don't care about this   static int base_search_str_max_level;
+    // GGG - Consider replacing the utf8_name_store string_table with a
+    //   string variable that will contain the set of name strings, and
+    //   the utf8_name_store class will no longer be needed as the
+    //   management of those names will be much simpler and can be easily
+    //   done in this class.
+    static utf8_name_store string_table;
+    //
     // The base_search_str_{min,max,scc} are sequences of indexes into the
     //   base_search_str values.  Since there is no real need to have actual
     //   character strings for base_search_str_{min,max}, they are only stored

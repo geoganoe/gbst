@@ -25,7 +25,7 @@
 //   that has been found in the target file system types and determine
 //   the encoding type and save it in the null terminated name string
 //   table in a way that the original string can be recovered when
-//   needed.  The string pointer table record associated with the
+//   needed.  The utf8_rcrd_type record associated with the
 //   string will provide the information needed to assist in assuring
 //   the capability exists and can be implemented.
 //
@@ -34,7 +34,7 @@
 //   to the string management classes.  The string is first identified
 //   for its encoding type, and then converting that string to a UTF-8
 //   compatible string if it is not already UTF-8 encoded.  If that can
-//   not be done in a bi-directionally reversable manner, a
+//   not be done in a bi-directionally reversable manner, (to be done) a
 //   bi-directionally reversible UTF-8 compatible string is produced
 //   such that it can be used to recreate the original string when
 //   needed. The two resulting strings are then stored consecutively in
@@ -69,9 +69,6 @@ gbst_interface_type::gbst_interface_type()
     const int result_2 = atexit( atexit_handl_2 );
     //
     // Start by initializing the derived data structures that are needed
-    // The scc_set array is:
-    // May now be fixed in the declaration - ggguniq_str_bal_list[ 0 ] = us;
-
     if ( result_2 != 0 ) cout << "Regist. for atexit hdlr 2 failed" << endl;
     for ( int idx = 0; idx < scc_size_ascii; idx++ )
       scc_set[ idx ] = cmask & scc.ascii_set[ idx ];
@@ -80,8 +77,8 @@ gbst_interface_type::gbst_interface_type()
     if ( test_scc_set_validity() )
     {
         // It should be OK now
-        cout << "With the greek symbol [α] replacing the [us] control "
-          "character, the test_scc_set_validity() function passes." << endl;
+        cout << "With the control characters removed from the set, "
+          "the test_scc_set_validity() function passes." << endl;
     }
     // The default string record flag set is
     // Fill in default values for the flags in the set
@@ -165,6 +162,10 @@ int gbst_interface_type::search_place_name( string fil_sys_name )
     //   compatible string is not equivalent to the real string, a new string
     //   that is both equivalent and a UTF-8 string must be created and
     //   stored immediately after the original string.
+    // Since the case where a bi-directional conversion between the original
+    //   string and the UTF-8 string has not yet occurred, the code for
+    //   implementing the second string has not yet been done, and may not
+    //   be needed.
     styp_flags flg_set = default_flg_set;
     styp_flags flg_idd = identify_encoding( fil_sys_name, flg_set );
     string utf8name;
@@ -207,6 +208,11 @@ int gbst_interface_type::search_place_name( string fil_sys_name )
 #endif // #ifdef INdevel
 
 #ifdef SETUP_hash_test  // Define this macro to enable the hash testing
+    //
+    // SHA1 and MD5 hashes of the name strings are created in this test
+    //   version of the interface so that the hash testing can be done,
+    //   however, the ultimate use for the hashes is to verify file
+    //   content uniqueness not name string uniqueness.
     sha1dgstArrayType str_sha_dgst;
     unsigned char *ssd = SHA1( reinterpret_cast<const unsigned char*>(
       utf8name.c_str() ), utf8name.size(), str_sha_dgst.data() );

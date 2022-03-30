@@ -54,7 +54,7 @@ int gbtree::attach_to_leaf( int search_node_id )
     // This returns a valid node ID that can be attached to the proper leaf
     //   node pointer, and also returned as the found_index.  It is made
     //   into a private method because it needs to be done in multiple
-    //   places.
+    //   gbtree method places.
     int my_node_id = -2;
     if ( parent_is_self )
     {
@@ -96,7 +96,7 @@ int gbtree::replace_node( int idx2replac )
     //   base btree management members, but some derived members are also
     //   affected and they are handled by replace_node_derived() virtual
     //   method.  Each derived class must handle its own base search
-    //   string needs in a replacement scenario and return a reference
+    //   string needs in a replacement scenario and return a reference to
     //   the node being replaced whose ID is given as the parameter.
     gbtree& node2replace = replace_node_derived( idx2replac );
     //
@@ -279,8 +279,9 @@ int gbtree::replace_node( int idx2replac )
 //   be either a new string pointer record or it can be a replaced record.
 //   It is passed the initial node ID to start the search, with the level
 //   already set and needs to return the node id of the place it finds.  If
-//   it already has a node ID, it returns that since we know that it is
-//   unique as it is a part of the set thus it will either replace another
+//   it is a replaced node, it already has a node ID which it will return
+//   when it finds its place, and since we know that it is unique
+//   as it is a part of the set, it will either replace another
 //   node or find a leaf node to bind to.  If it is a new string pointer
 //   record, it can find a resting place in three ways.  It can find an
 //   equivalent node already in the set, in which case it returns that nodes
@@ -296,13 +297,13 @@ int gbtree::find_my_place( int init_srch_node )
     int cur_node_id = init_srch_node;
     bool searching = true;
     int found_index = 0;
+
+#ifdef INFOdisplay  //  {
     //
     // GGG - Push this name string onto the name string vector stack to
     //   be used for the necessary display and compares instead of
     //   continually looking it up multiple times for each pass of the
     //   searching while loop below.
-
-#ifdef INFOdisplay  //  {
 #ifdef INdevel    // Declarations for development only
     bool first_out = true;
   if ( dbgf.a4 )
@@ -1137,8 +1138,7 @@ int gbtree::get_level()
     return btree_level;
 }
 
-int gbtree::place_new_node() // will it work without
-                             //   this? - int search_node_idx, int nxt_idx )
+int gbtree::place_new_node()
 {
     //
     // The gbtree::place_new_node() method knows that the node with
@@ -1150,7 +1150,7 @@ int gbtree::place_new_node() // will it work without
     //   changes.
     // The initial level is level 1 which is occupied uniquely by the
     //   head of the tree.  That node will be the starting place for the
-    //   search to find the place for this node.  It can be a duplicate
+    //   search to find the place for this node, which can be a duplicate
     //   of another node and thus not need to be added to the data base,
     //   or it could be attached as a leaf node to an existing node, or
     //   it could be a replacement for a node somewhere in the tree
@@ -1231,7 +1231,8 @@ int gbtree::place_new_node() // will it work without
     }
 
     //
-    // This is the main core for normal search and place.  The loop searches
+    // This is the main core for normal search and place.  The while loop
+    //   in the find_my_place() method that is called searches
     //   down through the levels of the btree until it locates the position
     //   for this node.
     //

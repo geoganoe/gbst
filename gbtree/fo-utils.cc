@@ -60,8 +60,7 @@ void atexit_handl_3()
 // The identify_encoding function will identify good ASCII7 only strings,
 //   good UTF-8 strings with non-ASCII7 characters, strings that include only
 //   the eight bit patterns define for ISO-8859-1 are identified as such and
-//   will set the appropriate styp_flags without disturbing any of the
-//   non-encoding related flags.
+//   will set the appropriate styp_flags.
 //
 
 bool validate_iso8859_1char( uint16_t ch )

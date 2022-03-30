@@ -1,7 +1,6 @@
 //
-// This provides the code to implement some useful Unicode handling
-//   utilities.  So far, two utilities have been included, but more may
-//   be coming in the future.
+// This provides the code to implement the ncursio class which is used to
+//   provide the display visualization for the gbst-test application.
 //
 //    Copyright (C) 2022  George Ganoe
 //

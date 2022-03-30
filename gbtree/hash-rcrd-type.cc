@@ -20,8 +20,9 @@
 //    with this program; if not, write to the Free Software Foundation, Inc.,
 //    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 //
-// This file contains the code to implement the hash record class that
-//   manages the hash data.  The class provides the mechanisms necessary
+// This file contains the template code to implement the hash record
+//   classes that manage the hash data.  The template class provides the
+//   mechanisms necessary
 //   to receive any valid file hash array from any of the supported file
 //   system types and store them in a hash type specific byte array,
 //   while providing a guarantee that only unique hash values are stored
@@ -324,9 +325,6 @@ int hash_rcrd_type<N_array >::cmp_rcrd2node( int node_idx )
 template<class N_array >
 int hash_rcrd_type<N_array >::set_base_srch_var()
 {
-    //
-    // GGG - I don't know why I declared this, but it's not used anywhere
-    //    N_array tmp_base_sss;
     int clevel = get_level();
     bool right_chld = get_rt_child_flg() == 1;
     if ( clevel == 1 )
@@ -473,39 +471,3 @@ void hash_rcrd_type<N_array>::init_dgst_vector( char rec_typ )
     dgstHexOut( tst_state.bsv_var, d_str );
     iout << "tested local types, cur bsv " << d_str << "." << endl;
 }
-
-//    template<class N_array>
-//    char sha1_rcrd_type::get_rcrd_type()
-//    {
-//        return 's';
-//    }
-//
-//    template<class N_array>
-//    char md5_rcrd_type::get_rcrd_type()
-//    {
-//        return 'm';
-//    }
-
-
-//    sha1_rcrd_type::sha1_rcrd_type()
-//    {
-//
-//    }
-//
-//    sha1_rcrd_type::sha1_rcrd_type( sha1dgstArrayType& a_dgst ) :
-//      sha1_r_type( a_dgst )
-//    {
-//
-//    }
-//
-//    md5_rcrd_type::md5_rcrd_type()
-//    {
-//
-//    }
-//
-//    md5_rcrd_type::md5_rcrd_type( md5dgstArrayType& a_dgst ) :
-//      md5_r_type( a_dgst )
-//    {
-//
-//    }
-

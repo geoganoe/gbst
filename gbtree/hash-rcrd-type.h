@@ -20,8 +20,9 @@
 //    with this program; if not, write to the Free Software Foundation, Inc.,
 //    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 //
-// This file contains the declaration for the hash record class that
-//   manages the hash data.  The class provides the mechanisms necessary
+// This file contains the declaration for a template of the hash record
+//   classes that manage the hash data.  The template class provides the
+//   mechanisms necessary
 //   to receive any valid file hash array from any of the supported file
 //   system types and store them in a hash type specific byte array,
 //   while providing a guarantee that only unique hash values are stored
@@ -30,7 +31,8 @@
 //   exists in the hash record table and if found returns the id of the
 //   existing copy instead of creating a new record.
 //
-// Use the following command to build this object:
+// You can use the following command to build this object, or the general
+//   project build script bld-gbst to build the entire project:
 //   g++ -std=c++17 -c hash-rcrd-type.cc
 //   ar -Prs ~/data/lib/libfoutil.a hash-rcrd-type.o
 //   ar -Ptv ~/data/lib/libfoutil.a
@@ -54,6 +56,9 @@
 
 using namespace std;
 
+//
+// Copy of a test class declaration which was a prototype for this
+//   development
 //   class md5sha1Digest
 //   {
 //   public:
@@ -196,18 +201,17 @@ public:
     //   needs to be updated and will call this method when necessary
     // GGG - set_base_srch_var() method will be different than this, but
     //   will be better described as this class is developed.
-    // The set_base_srch_var() method will return the number of characters
-    //   stored in the srchstr_node_add array (0-6) when successful, and a
-    //   negative value if it detects an error.  This may be changed once
-    //   the reliability of the process has been proven
+    // The set_base_srch_var() method for this derived class is the result
+    //   of a fiarly simple algorithm, and thus need not retain subsets as
+    //   a part of the class data.  As such, the return value will always
+    //   be zero as no errors are possible.
     int set_base_srch_var();
     void traverse_hash_records();
     //
-    // The derived class needs to do the replace part for the base search
-    //   variable then return the reference it obtains for the node to be
-    //   replaced
+    // This derived class has no need to do a replace part, so it just
+    //   checks the validity of the passed node index, and returns a
+    //   reference that it obtains for the node to be replaced.
     hash_rcrd_type& replace_node_derived( int node_idx );
-    //   virtual hash_rcrd_type& replace_node_derived( int node_idx ) = 0;
     //
     // Initializes a node record for this derived class in the data base
     //   array and copies the calling records data to it then returns the

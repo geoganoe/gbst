@@ -1,9 +1,19 @@
 //
-// This program tests the ability of the file organizer string handling
-//   classes to provide the design goals for handling the folder and
-//   file name strings.  These strings can potentially be made from a
+// This program tests the abilities of the gbtree class, and its derived
+//   classes to provide the design goals for creating unique sets of objects
+//   and efficiently retrieving specific elements from those sets.  The
+//   derived classes considered here are the hash record types SHA1 and MD5,
+//   and the UTF-8 string type.  Since one planned use of these data sets is
+//   for maintaining a list of file names for a data base, this program
+//   operates by reading a file of strings, one string per line, then
+//   converting the string to UTF-8 if necessary, getting the SHA1 and MD5
+//   hashes of the string, and generating the unique data sets for those
+//   three types using the three derived gbtree classes that are to be
+//   tested.  The strings read can potentially be made from a
 //   number of string encoding types, or even no formal encoding at all
-//   given the rules for naming files in some file systems.
+//   given the rules for naming files in some file systems.  However, they
+//   are being read using the C++ getline function, so they must be
+//   compatible with that.
 //
 //    Copyright (C) 2022  George Ganoe
 //
@@ -21,8 +31,8 @@
 //    with this program; if not, write to the Free Software Foundation, Inc.,
 //    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 //
-// The objective of the string handling classes is to accept any string
-//   that has been found in the target file system types and determine
+// The objective of the gbst_interface_type class is to accept any string
+//   that could be found in the target file system types and determine
 //   the encoding type and save it in the null terminated name string
 //   table in a way that the original string can be recovered when
 //   needed.  The string pointer table record associated with the
@@ -30,26 +40,11 @@
 //   the capability exists and can be implemented.
 //
 // Use the following shell command as needed to build the executable:
-//   bld-fo-string
-// Whenever a new module is added to the build requirements, the shell
-//   script ~/data/shell-script/build-fo-string with a link to it in
-//   the user bin folder ~/bin which must be in the $PATH bash variable
-//   in order for the command bld-fo-string to work.
+//   "../bld-gbst" if you are starting in this folder
+// The bld-gbst script is designed to be used for the currently checked out
+//   commit, and is kept up to date and changes to it are saved with each
+//   new commit of the project.
 //
-// The following comments describing the build process have been
-//   superceded as the number of modules has increased and a shell
-//   script has been built to do the build  --  see above  --
-//
-// Use the following commands as needed to build the executable:
-//   pushd ../unicode-utils
-//   ar -Prs ~/data/lib/libfoutil.a hex-symbol.o
-//   popd
-//   ar -Prs ~/data/lib/libfoutil.a fo-string-table.o gbtree.o
-//   g++ -std=c++17 -o fo-string-test fo-string-test.cc -L ~/lib -lfoutil
-//
-// Use the following command to build the executable from objects:
-//   g++ -std=c++17 -o fo-string-test fo-string-test.cc fo-string-table.o
-//     gbtree.o ../unicode-utils/hex-symbol.o
 
 #include "gbst-iface.h"
 #include "hash-rcrd-type.h"
@@ -240,43 +235,6 @@ int main(int argc, char* argv[])
             dbg_arg = stoul( dbg_flg_bits.substr( 2 ), nullptr, 16 );
             dbgf = tmpf;
             nxtarg++;
-
-        // This has been changed and moved below to show the final
-        //   debug_flags status.
-        //    if( dbgf.a0 ) { flg_set += ", a0"; nflgs++; }
-        //    if( dbgf.a1 ) { flg_set += ", a1"; nflgs++; }
-        //    if( dbgf.a2 ) { flg_set += ", a2"; nflgs++; }
-        //    if( dbgf.a3 ) { flg_set += ", a3"; nflgs++; }
-        //    if( dbgf.a4 ) { flg_set += ", a4"; nflgs++; }
-        //    if( dbgf.a5 ) { flg_set += ", a5"; nflgs++; }
-        //    if( dbgf.a6 ) { flg_set += ", a6"; nflgs++; }
-        //    if( dbgf.a7 ) { flg_set += ", a7"; nflgs++; }
-        //    if( dbgf.b0 ) { flg_set += ", b0"; nflgs++; }
-        //    if( dbgf.b1 ) { flg_set += ", b1"; nflgs++; }
-        //    if( dbgf.b2 ) { flg_set += ", b2"; nflgs++; }
-        //    if( dbgf.b3 ) { flg_set += ", b3"; nflgs++; }
-        //    if( dbgf.b4 ) { flg_set += ", b4"; nflgs++; }
-        //    if( dbgf.b5 ) { flg_set += ", b5"; nflgs++; }
-        //    if( dbgf.b6 ) { flg_set += ", b6"; nflgs++; }
-        //    if( dbgf.b7 ) { flg_set += ", b7"; nflgs++; }
-        //    if( dbgf.c0 ) { flg_set += ", c0"; nflgs++; }
-        //    if( dbgf.c1 ) { flg_set += ", c1"; nflgs++; }
-        //    if( dbgf.c2 ) { flg_set += ", c2"; nflgs++; }
-        //    if( dbgf.c3 ) { flg_set += ", c3"; nflgs++; }
-        //    if( dbgf.c4 ) { flg_set += ", c4"; nflgs++; }
-        //    if( dbgf.c5 ) { flg_set += ", c5"; nflgs++; }
-        //    if( dbgf.c6 ) { flg_set += ", c6"; nflgs++; }
-        //    if( dbgf.c7 ) { flg_set += ", c7"; nflgs++; }
-        //    if( dbgf.d0 ) { flg_set += ", d0"; nflgs++; }
-        //    if( dbgf.d1 ) { flg_set += ", d1"; nflgs++; }
-        //    if( dbgf.d2 ) { flg_set += ", d2"; nflgs++; }
-        //    if( dbgf.d3 ) { flg_set += ", d3"; nflgs++; }
-        //    if( dbgf.d4 ) { flg_set += ", d4"; nflgs++; }
-        //    if( dbgf.d5 ) { flg_set += ", d5"; nflgs++; }
-        //    if( dbgf.d6 ) { flg_set += ", d6"; nflgs++; }
-        //    if( dbgf.d7 ) { flg_set += ", d7"; nflgs++; }
-        //    cout << flg_set << ( nflgs > 1 ? " flags are set." :
-        //      nflgs == 1 ? " flag is set." : " no flags are set." ) << endl;
         }
         else
         {
@@ -676,6 +634,9 @@ int run_test_set( ifstream& f2proc, int start_str_num )
     // When getting lines from an actual file system, a delimiter
     //   character will need to be set reflecting the file system
     //   name string delimiter (for linux ext - '\0')
+    //
+    // This is the start of the main loop for testing the gbtree and
+    //   derived classes
     while (
 
 #ifdef USEncurses
@@ -688,16 +649,10 @@ int run_test_set( ifstream& f2proc, int start_str_num )
           ( pflg.change_start_str_num && ++lines_read > start_str_num )  )
         // hold -- if ( true )
         {
-            //
-            // GGG - this line is the one that needs to be changed to enable
-            //   the binary tree search and place for the names in the file.
-            //
-            // Switching to calling search_place_name
-            // int stind = gbst_iface.string_table.store_name( nm_frm_file );
             int stind = gbst_iface.search_place_name( nm_frm_file );
             if ( stind > 0 )
             {
-                // Check out file gbtree.cc in the do_node_info_update()
+                // Now done in file gbtree.cc in the do_node_info_update()
                 //   function for the code to do
                 //      if ( pflg.play_back_names_read )
                 index_list[ line_no ] = stind;
