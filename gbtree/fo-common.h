@@ -132,6 +132,24 @@ const string dbgn =
 extern debug_flags dbgf;
 extern bool test_bsv_debug;
 extern bool in_main;
+
+// Some general debugging macros
+#define DBG_loc_str_num( mflg, str1, num1 ) if ( dbgf.mflg ) dbgs \
+  << "File " __FILE__ " at line " << __LINE__ << ", " << str1 << num1
+#define DBG_loc_str_num_var( mflg, str1, num1, ... ) if ( dbgf.mflg ) dbgs \
+  << "File " __FILE__ " at line " << __LINE__ << ", " << str1 << num1 \
+  __VA_OPT__( << ) __VA_ARGS__
+#define DBG_add_str_num( mflg, str1, num1 ) if ( dbgf.mflg ) dbgs << str1 << num1
+#define DBG_add_str_num_end( mflg, str1, num1, str2 ) if ( dbgf.mflg ) dbgs \
+  << str1 << num1 << str2 << endl
+
+#else
+
+// Make null debugging macros
+#define DBG_loc_str_num( mflg, str1, num1 )
+#define DBG_loc_str_num_var( mflg, str1, num1, ... )
+#define DBG_add_str_num( mflg, str1, num1 )
+#define DBG_add_str_num_end( mflg, str1, num1, str2 )
 #endif  //  #ifdef INdevel
 
 //

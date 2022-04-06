@@ -171,11 +171,19 @@ int gbtree::replace_node( int idx2replac )
        "is replacing the node at this btree place:" );
 #endif // #ifdef INFOdisplay
 
-#ifdef INdevel    // Declarations for development only
-    if ( dbgf.a7 ) dbgs << "The node2replace ID is " << idx2replac <<
-      ", and replacing_node_id is " << replacing_node_id << "." << endl;
-#endif // #ifdef INdevel
+    DBG_loc_str_num_var( a7, "The node2replace ID is ", idx2replac,
+      ", and replacing_node_id is " << replacing_node_id << "." << endl );
 
+// GGG - This worked, but try it as above
+//    DBG_loc_str_num( a7, "The node2replace ID is ", idx2replac );
+//    DBG_add_str_num_end( a7, ", and replacing_node_id is ",
+//      replacing_node_id, "." );
+
+// GGG Testing debugging macros  --  See above
+//  #ifdef INdevel    // Declarations for development only
+//      if ( dbgf.a7 ) dbgs << "The node2replace ID is " << idx2replac <<
+//        ", and replacing_node_id is " << replacing_node_id << "." << endl;
+//  #endif // #ifdef INdevel
     gbtree& replacing_node = get_node( replacing_node_id ); // In the fail
                         // condition, a reference to the maximum node index
                         // is returned with an error flag set
@@ -201,11 +209,16 @@ int gbtree::replace_node( int idx2replac )
     else get_node( replacing_node.btree_parent ).btree_child_left =
       replacing_node_id;
 
-#ifdef INdevel    // Declarations for development only
-    if ( dbgf.a7 )
-      dbgs << "replace_node() method done, returning replacing_node_id = " <<
-      replacing_node_id << " after processing the node2replace." << endl;
-#endif // #ifdef INdevel
+    DBG_loc_str_num_var( a7, "replace_node() method done, returning "
+      "replacing_node_id = ", replacing_node_id,
+      " after processing the node2replace." << endl );
+
+// GGG Testing debugging macros  --  See above
+//  #ifdef INdevel    // Declarations for development only
+//      if ( dbgf.a7 )
+//        dbgs << "replace_node() method done, returning replacing_node_id = " <<
+//        replacing_node_id << " after processing the node2replace." << endl;
+//  #endif // #ifdef INdevel
 
     if ( node2replace.rt_chld_flg )
     {
@@ -294,6 +307,25 @@ int gbtree::replace_node( int idx2replac )
 //   taking a place at a leaf node, the new record must obtain a node ID.
 int gbtree::find_my_place( int init_srch_node )
 {
+
+#ifdef INdevel    // Declarations for development only
+    struct dbg_ivs_out {
+        bool first_out;
+        string get_str()
+        {
+            first_out = true;
+            string ivs_str = "{";
+            for ( auto vnum : ivs[ 0 ] )
+            {
+                ivs_str += ( first_out ? ( first_out = false, " " ) : ", " ) +
+                to_string( vnum );
+            }
+            ivs_str += " }.";
+            return ivs_str;
+        }
+    } dio;
+#endif // #ifdef INdevel
+
     int cur_node_id = init_srch_node;
     bool searching = true;
     int found_index = 0;
@@ -304,19 +336,31 @@ int gbtree::find_my_place( int init_srch_node )
     //   be used for the necessary display and compares instead of
     //   continually looking it up multiple times for each pass of the
     //   searching while loop below.
-#ifdef INdevel    // Declarations for development only
-    bool first_out = true;
-  if ( dbgf.a4 )
-  {
-    dbgs << "Size before push of the ivs vector is " << ivs.size() <<
-      ", and ivs[0] is {";
-    for ( auto vnum : ivs[ 0 ] )
-    {
-        dbgs << ( first_out ? ( first_out = false, " " ) : ", " ) << vnum;
-    }
-    dbgs << " }." << endl;
-  }
-#endif // #ifdef INdevel
+
+    DBG_loc_str_num_var( a4, "Size before push of the ivs vector is ",
+      ivs.size(), ", and ivs[0] is " << dio.get_str() << endl );
+
+// GGG Testing debugging macros  --  First test worked but See above
+//  #ifdef INdevel    // Declarations for development only
+//      bool first_out = true;   // Temporarily needed below
+//      if ( dbgf.a4 ) dbgs << "Size before push of the ivs vector is " <<
+//        ivs.size() << ", and ivs[0] is " << dio.get_str() << endl;
+//  #endif // #ifdef INdevel
+
+// GGG Testing debugging macros  --  See above
+//  #ifdef INdevel    // Declarations for development only
+      bool first_out = true;   // Temporarily needed below
+//    if ( dbgf.a4 )
+//    {
+//      dbgs << "Size before push of the ivs vector is " << ivs.size() <<
+//        ", and ivs[0] is {";
+//      for ( auto vnum : ivs[ 0 ] )
+//      {
+//          dbgs << ( first_out ? ( first_out = false, " " ) : ", " ) << vnum;
+//      }
+//      dbgs << " }." << endl;
+//    }
+//  #endif // #ifdef INdevel
 
     push_name_struct( parent_is_self ? get_parent_idx() : -1 );
 
