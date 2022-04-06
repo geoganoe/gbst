@@ -90,8 +90,8 @@ flist="hex-symbol uni-utils"
 mod_compile
 
 cd $baseFldr/gbtree
-flist="gbst-iface hash-rcrd-type utf8-rcrd-type gbtree utf8-name-store fo-utils"
-flist=$flist" ncursio btree-graph-class heap-mon-util"
+flist="gbst-iface hash-rcrd-type utf8-rcrd-type gbtree utf8-name-store"
+flist+=" fo-utils ncursio btree-graph-class heap-mon-util"
 mod_compile
 
 echo "Running compiler in $PWD to build executable:"
