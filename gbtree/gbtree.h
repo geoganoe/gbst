@@ -130,6 +130,17 @@ class gbtree
     int find_my_place( int init_srch_node );
     void do_node_info_update( int nde_id, string updat_str,
       bool replaced_node2leaf = false );
+    inline int get_id_value( int raw_idx )
+    {
+        // Decode the 28 bit id field which is an unbalanced signed integer
+        //   that was stored in the 28 bit unsigned bitfield space that was
+        //   passed to this method as the parameter.  Any value greater
+        //   than maxid must be interpreted as a negative number or an
+        //   error.  Valid negative numbers are the integers between -1024
+        //   and -1 inclusive.
+        if ( raw_idx > maxid ) raw_idx -= bar28;
+        return raw_idx;
+    }
 
 #if defined (INFOdisplay) || defined (INdevel)
 protected:
