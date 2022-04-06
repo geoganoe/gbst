@@ -1134,23 +1134,17 @@ void gbtree::traverse_records()
 
 int gbtree::get_parent_idx()
 {
-    int ptmp = btree_parent;
-    if ( ptmp > maxid ) ptmp -= bar28;
-    return ptmp;
+    return get_id_value( btree_parent );
 }
 
 int gbtree::get_child_left_idx()
 {
-    int ptmp = btree_child_left;
-    if ( ptmp > maxid ) ptmp -= bar28;
-    return ptmp;
+    return get_id_value( btree_child_left );
 }
 
 int gbtree::get_child_right_idx()
 {
-    int ptmp = btree_child_right;
-    if ( ptmp > maxid ) ptmp -= bar28;
-    return ptmp;
+    return get_id_value( btree_child_right );
 }
 
 gbtree::gbtree()
