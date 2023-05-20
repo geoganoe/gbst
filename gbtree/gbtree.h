@@ -80,7 +80,7 @@ using namespace std;
 //   that can be used as an error indicator or other non_ID purpose.
 // This provides the potential for negative values from -1024 to -1.
 const int bar28 = 0x10000000;
-const int maxid = 0x0ffffbff;
+const int maxid = 0x0ffffbff;  // 268,434,431 decimal
 
 class gbtree
 {
